@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType } from "react";
-import { Compass, ScanLine, ShoppingBasket } from "lucide-react";
+import { ArrowUpRight, Compass, ScanLine, ShoppingBasket } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
