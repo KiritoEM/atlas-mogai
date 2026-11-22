@@ -29,8 +29,12 @@ export class ApiError extends Error {
   }
 }
 
-const NETWORK_MESSAGE =
+export const NETWORK_MESSAGE =
   "Impossible de joindre le serveur Moramora. Vérifiez votre connexion ou que l'API est démarrée.";
+
+/** The file was fully sent, then the connection dropped before the response. */
+export const CONNECTION_LOST_MESSAGE =
+  "La connexion avec le serveur a été coupée pendant l'analyse, avant de recevoir le résultat. Réessayez avec une précision plus faible ou une vidéo plus courte.";
 
 function normalizeFieldErrors(raw: unknown): FieldErrors {
   if (!raw || typeof raw !== "object") {
@@ -154,7 +158,11 @@ function upload<T>(
         onProgress?.(event.loaded / event.total);
       }
     };
-    xhr.upload.onload = () => onUploaded?.();
+    let uploaded = false;
+    xhr.upload.onload = () => {
+      uploaded = true;
+      onUploaded?.();
+    };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(xhr.response as T);
@@ -162,7 +170,16 @@ function upload<T>(
         reject(toApiError(xhr.status, xhr.response));
       }
     };
-    xhr.onerror = () => reject(new ApiError(0, NETWORK_MESSAGE, "network"));
+    // status 0: no HTTP response at all (server down, proxy cut, CORS-less
+    // gateway error). After a complete upload, the server was reached.
+    const fail = () =>
+      reject(
+        uploaded
+          ? new ApiError(0, CONNECTION_LOST_MESSAGE, "connection_lost")
+          : new ApiError(0, NETWORK_MESSAGE, "network"),
+      );
+    xhr.onerror = fail;
+    xhr.ontimeout = fail;
     xhr.onabort = () =>
       reject(new DOMException("Upload cancelled", "AbortError"));
 

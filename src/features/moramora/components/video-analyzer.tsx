@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Film, Play, RotateCcw, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api, errorMessage, isAbortError } from "../api/client";
+import { ApiError, api, errorMessage, isAbortError } from "../api/client";
 import { LIMITS, VIDEO_TYPES } from "../api/config";
 import {
   formatBytes,
@@ -13,9 +13,16 @@ import {
   pluralize,
   violationsOf,
 } from "../api/messages";
-import type { VideoDetection } from "../api/types";
+import type { VideoDetection, VideoIncident } from "../api/types";
+import {
+  emptyVideoTracker,
+  recoveredResult,
+  recoveryTimeoutMs,
+  trackVideoMessage,
+  type VideoTracker,
+} from "../api/video-recovery";
 import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { useSocketMessages } from "../realtime/detection-socket";
+import { useDetectionSocket, useSocketMessages } from "../realtime/detection-socket";
 import { AnnotatedImage, Verdict } from "./detection-result";
 import { FileDropzone } from "./file-dropzone";
 import {
@@ -42,8 +49,15 @@ type Phase =
   | { name: "ready" }
   | { name: "uploading"; progress: number }
   | { name: "analyzing"; liveAlerts: number; lastTimestamp?: number }
-  | { name: "done"; result: VideoDetection }
+  /** HTTP response lost: waiting for the result on the WebSocket. */
+  | { name: "recovering" }
+  | { name: "done"; result: VideoDetection; recovered: boolean }
   | { name: "error"; message: string };
+
+const SOCKET_LOST_MESSAGE =
+  "La connexion avec le serveur a été coupée pendant l'analyse et la connexion temps réel est tombée aussi : le serveur a probablement redémarré. Réessayez avec une précision plus faible ou une vidéo plus courte.";
+const RECOVERY_TIMEOUT_MESSAGE =
+  "La connexion avec le serveur a été coupée pendant l'analyse et le résultat n'est pas arrivé à temps. Réessayez avec une précision plus faible ou une vidéo plus courte.";
 
 function isVideo(file: File) {
   const name = file.name.toLowerCase();
@@ -66,8 +80,63 @@ export function VideoAnalyzer() {
   const controllerRef = useRef<AbortController | null>(null);
   const resultRef = useRef<HTMLHeadingElement>(null);
   const rateGroupId = useId();
+  const { status: socketStatus } = useDetectionSocket();
+  // WebSocket messages of the running analysis, used if the HTTP response is lost.
+  const trackingRef = useRef(false);
+  const trackerRef = useRef<VideoTracker>(emptyVideoTracker);
+  const recoveryRef = useRef<{
+    sampleFps: number;
+    timer: ReturnType<typeof setInterval>;
+  } | null>(null);
+  const socketStatusRef = useRef(socketStatus);
+  useEffect(() => {
+    socketStatusRef.current = socketStatus;
+  });
 
-  useEffect(() => () => controllerRef.current?.abort(), []);
+  function stopTracking() {
+    trackingRef.current = false;
+    if (recoveryRef.current) {
+      clearInterval(recoveryRef.current.timer);
+      recoveryRef.current = null;
+    }
+  }
+
+  /** Waits for `video_completed` on the WebSocket (see useSocketMessages below). */
+  function recover(fps: number, frames: number | null) {
+    let secondsLeft = Math.ceil(recoveryTimeoutMs(frames) / 1000);
+    const check = () => {
+      // Without the WebSocket, the lost result can no longer arrive.
+      if (socketStatusRef.current !== "open") {
+        fail(SOCKET_LOST_MESSAGE);
+      } else if (secondsLeft-- <= 0) {
+        fail(RECOVERY_TIMEOUT_MESSAGE);
+      }
+    };
+    recoveryRef.current = { sampleFps: fps, timer: setInterval(check, 1000) };
+    setPhase({ name: "recovering" });
+    check();
+  }
+
+  function finish(result: VideoDetection, recovered: boolean) {
+    stopTracking();
+    setPhase({ name: "done", result: onlyInfractions(result), recovered });
+    requestAnimationFrame(() => resultRef.current?.focus());
+  }
+
+  function fail(message: string) {
+    stopTracking();
+    setPhase({ name: "error", message });
+  }
+
+  useEffect(
+    () => () => {
+      controllerRef.current?.abort();
+      if (recoveryRef.current) {
+        clearInterval(recoveryRef.current.timer);
+      }
+    },
+    [],
+  );
   useEffect(() => {
     if (!source) {
       return;
@@ -77,6 +146,17 @@ export function VideoAnalyzer() {
 
   // Violations are pushed on the WebSocket while the HTTP request is running.
   useSocketMessages((message) => {
+    if (trackingRef.current) {
+      trackerRef.current = trackVideoMessage(trackerRef.current, message);
+      const recovery = recoveryRef.current;
+      const recovered = recovery
+        ? recoveredResult(trackerRef.current, recovery.sampleFps)
+        : null;
+      if (recovered) {
+        finish(recovered, true);
+        return;
+      }
+    }
     if (
       message.type !== "alert" ||
       message.source !== "video_upload" ||
@@ -113,6 +193,7 @@ export function VideoAnalyzer() {
 
   function reset() {
     controllerRef.current?.abort();
+    stopTracking();
     setFile(null);
     setSource(null);
     setDuration(null);
@@ -125,6 +206,9 @@ export function VideoAnalyzer() {
     }
     const controller = new AbortController();
     controllerRef.current = controller;
+    stopTracking();
+    trackerRef.current = emptyVideoTracker;
+    trackingRef.current = true;
     setPhase({ name: "uploading", progress: 0 });
     try {
       const { data } = await api.detectVideo(file, sampleFps, {
@@ -133,14 +217,24 @@ export function VideoAnalyzer() {
         onProgress: (progress) => setPhase({ name: "uploading", progress }),
         onUploaded: () => setPhase({ name: "analyzing", liveAlerts: 0 }),
       });
-      setPhase({ name: "done", result: onlyInfractions(data) });
-      requestAnimationFrame(() => resultRef.current?.focus());
+      finish(data, false);
     } catch (error) {
       if (isAbortError(error)) {
+        stopTracking();
+        return;
+      }
+      if (error instanceof ApiError && error.code === "connection_lost") {
+        // The server got the whole file and may still be analysing it.
+        const recovered = recoveredResult(trackerRef.current, sampleFps);
+        if (recovered) {
+          finish(recovered, true);
+          return;
+        }
+        recover(sampleFps, estimatedFrames);
         return;
       }
       expireOn401(error);
-      setPhase({ name: "error", message: errorMessage(error) });
+      fail(errorMessage(error));
     }
   }
 
@@ -160,8 +254,12 @@ export function VideoAnalyzer() {
     duration === null
       ? null
       : Math.min(LIMITS.videoMaxFrames, Math.max(1, Math.ceil(duration * sampleFps)));
-  const busy = phase.name === "uploading" || phase.name === "analyzing";
+  const busy =
+    phase.name === "uploading" ||
+    phase.name === "analyzing" ||
+    phase.name === "recovering";
   const result = phase.name === "done" ? phase.result : null;
+  const recovered = phase.name === "done" && phase.recovered;
 
   return (
     <div className="space-y-8">
@@ -205,7 +303,7 @@ export function VideoAnalyzer() {
               />
             ) : null}
 
-            {result && result.video.duration > 0 ? (
+            {result && result.video.duration > 0 && result.incidents.length > 0 ? (
               <Timeline result={result} onSeek={seek} />
             ) : null}
           </div>
@@ -308,6 +406,29 @@ export function VideoAnalyzer() {
                 </div>
               ) : null}
 
+              {phase.name === "recovering" ? (
+                <div className="space-y-3">
+                  <p className="flex items-center gap-2 text-sm text-fg-2">
+                    <Spinner className="size-3.5" />
+                    Récupération du résultat en cours…
+                  </p>
+                  <ProgressBar label="Récupération du résultat de l'analyse" />
+                  <p className="text-[13px] text-fg-3">
+                    La connexion a été coupée pendant l&apos;analyse, mais le serveur
+                    continue : le résultat arrivera par la connexion temps réel.
+                    Gardez cette page ouverte.
+                  </p>
+                </div>
+              ) : null}
+
+              {recovered ? (
+                <Notice tone="info">
+                  Résultat récupéré par la connexion temps réel : les images annotées
+                  ne sont pas disponibles. Utilisez « Voir » pour retrouver chaque
+                  infraction dans la vidéo.
+                </Notice>
+              ) : null}
+
               {phase.name === "error" ? (
                 <>
                   <Notice tone="error" title="L'analyse n'a pas abouti">
@@ -332,8 +453,8 @@ export function VideoAnalyzer() {
             </div>
           </Panel>
 
-          {result && result.violations.length > 0 ? (
-            <ViolationFrames result={result} onSeek={seek} />
+          {result && result.incidents.length > 0 ? (
+            <IncidentList result={result} recovered={recovered} onSeek={seek} />
           ) : null}
         </div>
       )}
@@ -341,34 +462,53 @@ export function VideoAnalyzer() {
   );
 }
 
-/**
- * The API lists every frame with a detection, compliant riders included.
- * Keep the frames with at least one infraction and the infraction counts.
- */
+/** Keep infraction labels only (the API already does; older servers did not). */
 function onlyInfractions(result: VideoDetection): VideoDetection {
+  const infractions = (counts: Record<string, number>) =>
+    Object.fromEntries(Object.entries(counts).filter(([label]) => isViolation(label)));
   return {
     ...result,
+    incidents: (result.incidents ?? [])
+      .map((incident) => ({ ...incident, counts: infractions(incident.counts) }))
+      .filter((incident) => Object.keys(incident.counts).length > 0),
     violations: result.violations.filter(
       (frame) => violationsOf(frame.detections).length > 0,
     ),
-    summary: Object.fromEntries(
-      Object.entries(result.summary).filter(([label]) => isViolation(label)),
-    ),
+    summary: infractions(result.summary),
   };
 }
 
+/** "Sans casque × 3 · Plus de deux personnes sur la moto" */
+function describeCounts(counts: Record<string, number>) {
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => `${labelName(label)}${count > 1 ? ` × ${count}` : ""}`)
+    .join(" · ");
+}
+
+function timeRange(incident: VideoIncident) {
+  return incident.start === incident.end
+    ? formatTimestamp(incident.start)
+    : `${formatTimestamp(incident.start)} – ${formatTimestamp(incident.end)}`;
+}
+
 function VideoSummary({ result }: { result: VideoDetection }) {
-  const detections = result.violations.flatMap((violation) => violation.detections);
   const summary = Object.entries(result.summary).sort((a, b) => b[1] - a[1]);
+  const total = summary.reduce((sum, [, count]) => sum + count, 0);
   const rows = [
     { label: "Durée", value: formatTimestamp(result.video.duration) },
     { label: "Résolution", value: `${result.video.width} × ${result.video.height}` },
     { label: "Images analysées", value: String(result.frames_analyzed) },
-    { label: "Images en infraction", value: String(result.violations.length) },
+    { label: "Scènes en infraction", value: String(result.incidents.length) },
   ];
   return (
     <>
-      <Verdict detections={detections} cleanLabel="Aucune infraction dans cette vidéo" />
+      <Verdict
+        detections={[]}
+        counts={result.summary}
+        cleanLabel="Aucune infraction confirmée dans cette vidéo"
+        cleanDetail="Les détections isolées ou trop incertaines sont écartées."
+      />
       {summary.length > 0 ? (
         <div>
           <h3 className="text-[13px] font-medium text-fg">Par type d&apos;infraction</h3>
@@ -380,6 +520,10 @@ function VideoSummary({ result }: { result: VideoDetection }) {
               </li>
             ))}
           </ul>
+          <p className="mt-2 text-[12px] text-fg-3">
+            {total > 1 ? "Personnes" : "Personne"} (ou motos) distinctes, confirmées
+            sur plusieurs images de chaque scène.
+          </p>
         </div>
       ) : null}
       <dl className="divide-y divide-line border-y border-line">
@@ -402,25 +546,35 @@ function Timeline({
   onSeek: (seconds: number) => void;
 }) {
   const { duration } = result.video;
+  const at = (seconds: number) => Math.min(1, Math.max(0, seconds / duration));
   return (
     <div>
       <p className="text-[13px] text-fg-3" id="timeline-label">
-        Frise des infractions · {pluralize(result.violations.length, "repère")}
+        Frise des infractions · {pluralize(result.incidents.length, "scène")}
       </p>
       <div className="relative mt-2 h-10 rounded-[10px] border border-line bg-ground">
         <span aria-hidden="true" className="absolute inset-x-3 top-1/2 h-px bg-line-strong" />
+        {result.incidents.map((incident) => (
+          <span
+            key={`range-${incident.key_frame}`}
+            aria-hidden="true"
+            className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-moramora/30"
+            style={{
+              left: `calc(0.75rem + (100% - 1.5rem) * ${at(incident.start)})`,
+              width: `max(0.375rem, calc((100% - 1.5rem) * ${at(incident.end) - at(incident.start)}))`,
+            }}
+          />
+        ))}
         <ul aria-labelledby="timeline-label">
-          {result.violations.map((violation) => (
+          {result.incidents.map((incident) => (
             <li
-              key={violation.frame}
+              key={incident.key_frame}
               className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-              style={{
-                left: `calc(0.75rem + (100% - 1.5rem) * ${Math.min(1, violation.timestamp / duration)})`,
-              }}
+              style={{ left: `calc(0.75rem + (100% - 1.5rem) * ${at(incident.timestamp)})` }}
             >
               <button
                 type="button"
-                onClick={() => onSeek(violation.timestamp)}
+                onClick={() => onSeek(incident.timestamp)}
                 className={cn(
                   "group flex size-6 items-center justify-center rounded-full",
                   focusRing,
@@ -428,8 +582,8 @@ function Timeline({
               >
                 <span className="size-2.5 rounded-full bg-moramora ring-4 ring-moramora/15 transition-transform group-hover:scale-125" />
                 <span className="sr-only">
-                  Aller à {formatTimestamp(violation.timestamp)} :{" "}
-                  {[...new Set(violationsOf(violation.detections).map((d) => labelName(d.label)))].join(", ")}
+                  Aller à {formatTimestamp(incident.timestamp)} (scène {timeRange(incident)}) :{" "}
+                  {describeCounts(incident.counts)}
                 </span>
               </button>
             </li>
@@ -444,57 +598,60 @@ function Timeline({
   );
 }
 
-function ViolationFrames({
+function IncidentList({
   result,
+  recovered,
   onSeek,
 }: {
   result: VideoDetection;
+  recovered: boolean;
   onSeek: (seconds: number) => void;
 }) {
   return (
-    <section aria-labelledby="frames-title" className="lg:col-span-2">
-      <h2 id="frames-title" className="text-[15px] font-medium text-fg">
-        Images en infraction
+    <section aria-labelledby="incidents-title" className="lg:col-span-2">
+      <h2 id="incidents-title" className="text-[15px] font-medium text-fg">
+        Scènes en infraction
       </h2>
+      <p className="mt-1 text-[13px] text-fg-3">
+        Une carte par scène : les images successives des mêmes personnes sont
+        regroupées, avec l&apos;image la plus représentative.
+      </p>
       <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {result.violations.map((violation) => {
-          const labels = [...new Set(violationsOf(violation.detections).map((d) => labelName(d.label)))];
-          return (
-            <li key={violation.frame}>
-              <Panel className="overflow-hidden">
-                {violation.image ? (
-                  <AnnotatedImage
-                    base64={violation.image}
-                    detections={violation.detections}
-                    className="rounded-none border-0 border-b border-line"
-                  />
-                ) : null}
-                <div className="flex items-center gap-3 p-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-mono text-[13px] text-fg-3 tabular-nums">
-                      {formatTimestamp(violation.timestamp)}
-                    </p>
-                    <p className="mt-0.5 truncate text-sm text-fg">{labels.join(" · ")}</p>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onSeek(violation.timestamp)}
-                  >
-                    <Play aria-hidden="true" />
-                    Voir
-                    <span className="sr-only"> à {formatTimestamp(violation.timestamp)}</span>
-                  </Button>
+        {result.incidents.map((incident) => (
+          <li key={incident.key_frame}>
+            <Panel className="overflow-hidden">
+              {incident.image ? (
+                <AnnotatedImage
+                  base64={incident.image}
+                  detections={incident.detections}
+                  className="rounded-none border-0 border-b border-line"
+                />
+              ) : null}
+              <div className="flex items-center gap-3 p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[13px] text-fg-3 tabular-nums">
+                    {timeRange(incident)}
+                  </p>
+                  <p className="mt-0.5 text-sm text-fg">{describeCounts(incident.counts)}</p>
                 </div>
-              </Panel>
-            </li>
-          );
-        })}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onSeek(incident.timestamp)}
+                >
+                  <Play aria-hidden="true" />
+                  Voir
+                  <span className="sr-only"> à {formatTimestamp(incident.timestamp)}</span>
+                </Button>
+              </div>
+            </Panel>
+          </li>
+        ))}
       </ul>
-      {result.violations.some((violation) => !violation.image) ? (
+      {!recovered && result.incidents.some((incident) => !incident.image) ? (
         <p className="mt-3 text-[13px] text-fg-3">
-          Seules les premières images annotées sont renvoyées par le serveur ; les suivantes
-          restent consultables dans la vidéo.
+          Seules les premières scènes ont une image annotée ; les suivantes restent
+          consultables dans la vidéo.
         </p>
       ) : null}
     </section>

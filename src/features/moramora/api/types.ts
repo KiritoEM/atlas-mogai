@@ -41,13 +41,36 @@ export type VideoViolationFrame = {
   image: string | null;
 };
 
+/**
+ * One continuous scene in infraction. The API groups consecutive flagged
+ * frames, keeps only infractions confirmed over several frames and counts
+ * the people (or motorbikes) involved, instead of one entry per frame.
+ */
+export type VideoIncident = {
+  start: number;
+  end: number;
+  /** Analysed frames in infraction within the incident. */
+  frames: number;
+  /** People (or motorbikes) per infraction label, e.g. { without_helmet: 3 }. */
+  counts: Record<string, number>;
+  key_frame: number;
+  timestamp: number;
+  /** Confirmed detections drawn on the key frame. */
+  detections: Detection[];
+  /** Annotated key frame (JPEG base64), null beyond the server cap. */
+  image: string | null;
+};
+
 export type VideoDetection = {
   upload_id: string;
   video: VideoMetadata;
   sample_fps: number;
   frames_analyzed: number;
   alert: boolean;
+  /** People (or motorbikes) per infraction label, over all incidents. */
   summary: Record<string, number>;
+  incidents: VideoIncident[];
+  /** Frames of the incidents, for the timeline. */
   violations: VideoViolationFrame[];
 };
 
@@ -86,6 +109,8 @@ export type WsVideoCompleted = {
     frames_analyzed: number;
     alert: boolean;
     summary: Record<string, number>;
+    /** Without images, to keep the WebSocket message small. */
+    incidents: VideoIncident[];
   };
 };
 

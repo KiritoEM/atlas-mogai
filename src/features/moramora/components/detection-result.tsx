@@ -17,16 +17,25 @@ export function jpegDataUrl(base64: string) {
 
 export function Verdict({
   detections,
+  counts,
   cleanLabel = "Aucune infraction détectée",
+  cleanDetail,
   className,
 }: {
   detections: Detection[];
+  /** Infractions already counted (video: people per label), instead of detections. */
+  counts?: Record<string, number>;
   cleanLabel?: string;
+  cleanDetail?: string;
   className?: string;
 }) {
-  const violations = violationsOf(detections);
-  const alert = violations.length > 0;
-  const groups = countByLabel(violations);
+  const groups = counts
+    ? Object.entries(counts)
+        .filter(([label, count]) => isViolation(label) && count > 0)
+        .sort((a, b) => b[1] - a[1])
+    : countByLabel(violationsOf(detections));
+  const total = groups.reduce((sum, [, count]) => sum + count, 0);
+  const alert = total > 0;
   return (
     <div
       className={cn(
@@ -45,7 +54,7 @@ export function Verdict({
       <div>
         <p className="text-[15px] font-medium text-fg">
           {alert
-            ? `${pluralize(violations.length, "infraction détectée", "infractions détectées")}`
+            ? `${pluralize(total, "infraction détectée", "infractions détectées")}`
             : cleanLabel}
         </p>
         <p className="mt-0.5 text-sm text-fg-2">
@@ -53,7 +62,9 @@ export function Verdict({
             ? groups
                 .map(([label, count]) => `${labelName(label)}${count > 1 ? ` × ${count}` : ""}`)
                 .join(" · ")
-            : detections.length > 0
+            : cleanDetail
+              ? cleanDetail
+              : detections.length > 0
               ? "Les conducteurs repérés sont en règle."
               : "Le modèle n'a rien relevé au-dessus du seuil de confiance de 50 %."}
         </p>
