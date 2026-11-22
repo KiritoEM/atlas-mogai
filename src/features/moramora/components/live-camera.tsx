@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, CameraOff, SwitchCamera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DETECTION_ERRORS, pluralize } from "../api/messages";
+import { DETECTION_ERRORS, pluralize, violationsOf } from "../api/messages";
 import type { Detection } from "../api/types";
 import { useDetectionSocket, useSocketMessages } from "../realtime/detection-socket";
 import { AnnotatedImage, DetectionList, Verdict } from "./detection-result";
@@ -84,7 +84,7 @@ export function LiveCamera() {
       setLatest({ image: message.data.image, detections: message.data.detections, at: Date.now() });
       setStats((current) => ({
         frames: current.frames + 1,
-        alerts: current.alerts + (message.data.detections.length > 0 ? 1 : 0),
+        alerts: current.alerts + (violationsOf(message.data.detections).length > 0 ? 1 : 0),
       }));
     } else if (message.type === "error") {
       inFlightRef.current = null;

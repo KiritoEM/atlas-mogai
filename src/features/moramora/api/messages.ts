@@ -1,31 +1,39 @@
 import type { Detection } from "./types";
 
-/** Known YOLO labels → French. Unknown labels fall back to a readable form. */
+/**
+ * Classes of the YOLOv8 model (jashwanthpeddisetty0712/violation-detection-yolov8).
+ * The model also detects compliant riders, which the API reports like any other
+ * detection: only the classes outside COMPLIANT are infractions.
+ */
 const LABELS: Record<string, string> = {
-  no_helmet: "Sans casque",
-  without_helmet: "Sans casque",
-  helmet: "Avec casque",
+  normal: "Conducteur en règle",
   with_helmet: "Avec casque",
-  no_seatbelt: "Sans ceinture",
-  triple_riding: "Trois personnes sur une moto",
-  triple_ride: "Trois personnes sur une moto",
-  mobile_usage: "Téléphone au volant",
-  phone: "Téléphone au volant",
-  wrong_way: "Contresens",
-  red_light: "Feu rouge grillé",
-  number_plate: "Plaque d'immatriculation",
-  license_plate: "Plaque d'immatriculation",
-  rider: "Conducteur",
-  motorcycle: "Moto",
+  without_helmet: "Sans casque",
+  more_than_two_persons: "Plus de deux personnes sur la moto",
+  using_mobile: "Téléphone en conduisant",
 };
 
+const COMPLIANT = new Set(["normal", "with_helmet"]);
+
+function labelKey(label: string) {
+  return label.trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
 export function labelName(label: string): string {
-  const key = label.trim().toLowerCase().replace(/[\s-]+/g, "_");
-  if (LABELS[key]) {
-    return LABELS[key];
+  const known = LABELS[labelKey(label)];
+  if (known) {
+    return known;
   }
-  const readable = label.replace(/[_-]+/g, " ").trim();
+  const readable = label.replace(/[_-]+/g, " ").trim().toLowerCase();
   return readable.charAt(0).toUpperCase() + readable.slice(1);
+}
+
+export function isViolation(label: string): boolean {
+  return !COMPLIANT.has(labelKey(label));
+}
+
+export function violationsOf(detections: Detection[]): Detection[] {
+  return detections.filter((detection) => isViolation(detection.label));
 }
 
 export function formatConfidence(confidence: number): string {
@@ -42,14 +50,15 @@ export function countByLabel(detections: Detection[]): [string, number][] {
 }
 
 export function describeDetections(detections: Detection[]): string {
-  if (detections.length === 0) {
+  const violations = violationsOf(detections);
+  if (violations.length === 0) {
     return "aucune infraction détectée";
   }
-  const parts = countByLabel(detections).map(
+  const parts = countByLabel(violations).map(
     ([label, count]) => `${labelName(label).toLowerCase()} (${count})`,
   );
-  const total = detections.length;
-  return `${total} détection${total > 1 ? "s" : ""} : ${parts.join(", ")}`;
+  const total = violations.length;
+  return `${total} infraction${total > 1 ? "s" : ""} : ${parts.join(", ")}`;
 }
 
 export function pluralize(count: number, singular: string, plural?: string) {

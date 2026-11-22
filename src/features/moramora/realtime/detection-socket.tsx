@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { WS_URL } from "../api/config";
-import { describeDetections } from "../api/messages";
+import { describeDetections, violationsOf } from "../api/messages";
 import type { Detection, WsAlert, WsMessage } from "../api/types";
 import { useAuth } from "../auth/auth-provider";
 
@@ -69,21 +69,26 @@ function journalReducer(
     return [];
   }
   const { message, at } = action;
+  // The API alerts on any detection, compliant riders included: keep infractions only.
+  const detections = violationsOf(message.data.detections);
+  if (detections.length === 0) {
+    return state;
+  }
   const source: AlertSource = message.source ?? "live";
   const latest = state[0];
   if (
     source === "live" &&
     latest?.source === "live" &&
     at - latest.receivedAt < LIVE_MERGE_MS &&
-    labelsKey(latest.detections) === labelsKey(message.data.detections)
+    labelsKey(latest.detections) === labelsKey(detections)
   ) {
-    return [{ ...latest, receivedAt: at, detections: message.data.detections }, ...state.slice(1)];
+    return [{ ...latest, receivedAt: at, detections }, ...state.slice(1)];
   }
   const entry: JournalEntry = {
     id: `${at}-${Math.random().toString(36).slice(2, 8)}`,
     receivedAt: at,
     source,
-    detections: message.data.detections,
+    detections,
     uploadId: message.upload_id,
     frame: message.data.frame,
     timestamp: message.data.timestamp,
@@ -129,7 +134,10 @@ export function DetectionSocketProvider({ children }: { children: ReactNode }) {
         } catch {
           return;
         }
-        if (message.type === "alert") {
+        if (
+          message.type === "alert" &&
+          violationsOf(message.data.detections).length > 0
+        ) {
           const at = Date.now();
           dispatch({ type: "alert", message, at });
           if (at - lastAnnounceRef.current > LIVE_MERGE_MS || message.source) {

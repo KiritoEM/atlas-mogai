@@ -8,8 +8,10 @@ import { LIMITS, VIDEO_TYPES } from "../api/config";
 import {
   formatBytes,
   formatTimestamp,
+  isViolation,
   labelName,
   pluralize,
+  violationsOf,
 } from "../api/messages";
 import type { VideoDetection } from "../api/types";
 import { useAuth, useExpireOn401 } from "../auth/auth-provider";
@@ -75,7 +77,11 @@ export function VideoAnalyzer() {
 
   // Violations are pushed on the WebSocket while the HTTP request is running.
   useSocketMessages((message) => {
-    if (message.type !== "alert" || message.source !== "video_upload") {
+    if (
+      message.type !== "alert" ||
+      message.source !== "video_upload" ||
+      violationsOf(message.data.detections).length === 0
+    ) {
       return;
     }
     setPhase((current) =>
@@ -127,7 +133,7 @@ export function VideoAnalyzer() {
         onProgress: (progress) => setPhase({ name: "uploading", progress }),
         onUploaded: () => setPhase({ name: "analyzing", liveAlerts: 0 }),
       });
-      setPhase({ name: "done", result: data });
+      setPhase({ name: "done", result: onlyInfractions(data) });
       requestAnimationFrame(() => resultRef.current?.focus());
     } catch (error) {
       if (isAbortError(error)) {
@@ -335,6 +341,22 @@ export function VideoAnalyzer() {
   );
 }
 
+/**
+ * The API lists every frame with a detection, compliant riders included.
+ * Keep the frames with at least one infraction and the infraction counts.
+ */
+function onlyInfractions(result: VideoDetection): VideoDetection {
+  return {
+    ...result,
+    violations: result.violations.filter(
+      (frame) => violationsOf(frame.detections).length > 0,
+    ),
+    summary: Object.fromEntries(
+      Object.entries(result.summary).filter(([label]) => isViolation(label)),
+    ),
+  };
+}
+
 function VideoSummary({ result }: { result: VideoDetection }) {
   const detections = result.violations.flatMap((violation) => violation.detections);
   const summary = Object.entries(result.summary).sort((a, b) => b[1] - a[1]);
@@ -407,7 +429,7 @@ function Timeline({
                 <span className="size-2.5 rounded-full bg-moramora ring-4 ring-moramora/15 transition-transform group-hover:scale-125" />
                 <span className="sr-only">
                   Aller à {formatTimestamp(violation.timestamp)} :{" "}
-                  {[...new Set(violation.detections.map((d) => labelName(d.label)))].join(", ")}
+                  {[...new Set(violationsOf(violation.detections).map((d) => labelName(d.label)))].join(", ")}
                 </span>
               </button>
             </li>
@@ -436,7 +458,7 @@ function ViolationFrames({
       </h2>
       <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {result.violations.map((violation) => {
-          const labels = [...new Set(violation.detections.map((d) => labelName(d.label)))];
+          const labels = [...new Set(violationsOf(violation.detections).map((d) => labelName(d.label)))];
           return (
             <li key={violation.frame}>
               <Panel className="overflow-hidden">

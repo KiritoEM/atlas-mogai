@@ -4,8 +4,10 @@ import {
   countByLabel,
   describeDetections,
   formatConfidence,
+  isViolation,
   labelName,
   pluralize,
+  violationsOf,
 } from "../api/messages";
 import type { Detection } from "../api/types";
 
@@ -22,8 +24,9 @@ export function Verdict({
   cleanLabel?: string;
   className?: string;
 }) {
-  const alert = detections.length > 0;
-  const groups = countByLabel(detections);
+  const violations = violationsOf(detections);
+  const alert = violations.length > 0;
+  const groups = countByLabel(violations);
   return (
     <div
       className={cn(
@@ -42,7 +45,7 @@ export function Verdict({
       <div>
         <p className="text-[15px] font-medium text-fg">
           {alert
-            ? `${pluralize(detections.length, "infraction détectée", "infractions détectées")}`
+            ? `${pluralize(violations.length, "infraction détectée", "infractions détectées")}`
             : cleanLabel}
         </p>
         <p className="mt-0.5 text-sm text-fg-2">
@@ -50,7 +53,9 @@ export function Verdict({
             ? groups
                 .map(([label, count]) => `${labelName(label)}${count > 1 ? ` × ${count}` : ""}`)
                 .join(" · ")
-            : "Le modèle n'a rien relevé au-dessus du seuil de confiance de 50 %."}
+            : detections.length > 0
+              ? "Les conducteurs repérés sont en règle."
+              : "Le modèle n'a rien relevé au-dessus du seuil de confiance de 50 %."}
         </p>
       </div>
     </div>
@@ -61,17 +66,33 @@ export function DetectionList({ detections }: { detections: Detection[] }) {
   if (detections.length === 0) {
     return null;
   }
-  const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
+  // Infractions first, then compliant detections, each by confidence.
+  const sorted = [...detections].sort(
+    (a, b) =>
+      Number(isViolation(b.label)) - Number(isViolation(a.label)) ||
+      b.confidence - a.confidence,
+  );
   return (
     <ul className="divide-y divide-line rounded-[12px] border border-line">
-      {sorted.map((detection, index) => (
+      {sorted.map((detection, index) => {
+        const violation = isViolation(detection.label);
+        return (
         <li
           key={`${detection.label}-${index}`}
           className="flex items-center gap-4 px-4 py-3"
         >
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-moramora" />
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              violation ? "bg-moramora" : "bg-gaspika",
+            )}
+          />
           <span className="min-w-0 flex-1 truncate text-sm text-fg">
             {labelName(detection.label)}
+            <span className={cn("ml-2 text-[12px]", violation ? "text-moramora" : "text-fg-3")}>
+              {violation ? "Infraction" : "Conforme"}
+            </span>
           </span>
           <span className="hidden h-1 w-20 overflow-hidden rounded-full bg-raised sm:block" aria-hidden="true">
             <span
@@ -84,7 +105,8 @@ export function DetectionList({ detections }: { detections: Detection[] }) {
             {formatConfidence(detection.confidence)}
           </span>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }
