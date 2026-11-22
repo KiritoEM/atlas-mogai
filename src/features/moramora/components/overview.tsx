@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ArrowUpRight, BellOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api } from "../api/client";
+import { useHealthQuery } from "@/hooks/moramora/use-health-query";
 import {
   countByLabel,
   formatConfidence,
   formatTimestamp,
   labelName,
 } from "../api/messages";
-import { useAuth } from "../auth/auth-provider";
+import { useAuth } from "../providers/auth-provider";
 import {
   useDetectionSocket,
   type AlertSource,
@@ -195,24 +194,14 @@ function SessionStats({ entries }: { entries: JournalEntry[] }) {
   );
 }
 
-type Health = "checking" | "ok" | "down";
-
 function ServiceStatus() {
   const { status } = useDetectionSocket();
-  const [health, setHealth] = useState<Health>("checking");
-
-  useEffect(() => {
-    const controller = new AbortController();
-    api
-      .health(controller.signal)
-      .then(() => setHealth("ok"))
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setHealth("down");
-        }
-      });
-    return () => controller.abort();
-  }, []);
+  const healthQuery = useHealthQuery();
+  const health = healthQuery.isPending
+    ? "checking"
+    : healthQuery.isSuccess
+      ? "ok"
+      : "down";
 
   const rows: { label: string; state: "ok" | "pending" | "down"; text: string }[] = [
     {

@@ -3,8 +3,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Film, Play, RotateCcw, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api, errorMessage, isAbortError } from "@/features/moramora/api/client";
-import { LIMITS, VIDEO_TYPES } from "@/features/moramora/api/config";
+import { errorMessage, isAbortError } from "@/features/moramora/api/client";
+import { useVideoDetectionMutation } from "@/hooks/moramora/use-detection-mutations";
+import { LIMITS, VIDEO_TYPES } from "@/constants/api-config-constants";
 import {
   formatBytes,
   formatTimestamp,
@@ -13,8 +14,8 @@ import {
   pluralize,
   violationsOf,
 } from "@/features/moramora/api/messages";
-import type { VideoDetection } from "@/features/moramora/api/types";
-import { useAuth, useExpireOn401 } from "@/features/moramora/auth/auth-provider";
+import type { VideoDetection } from "@/types";
+import { useAuth, useExpireOn401 } from "@/features/moramora/providers/auth-provider";
 import { useSocketMessages } from "@/features/moramora/realtime/detection-socket";
 import { AnnotatedImage, Verdict } from "@/features/moramora/components/detection-result";
 import { FileDropzone } from "@/components/ui/file-dropzone";
@@ -56,6 +57,7 @@ function isVideo(file: File) {
 export function VideoAnalyzer() {
   const { token } = useAuth();
   const expireOn401 = useExpireOn401();
+  const detectionMutation = useVideoDetectionMutation();
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
@@ -117,6 +119,7 @@ export function VideoAnalyzer() {
     setSource(null);
     setDuration(null);
     setPhase({ name: "idle" });
+    detectionMutation.reset();
   }
 
   async function analyze() {
@@ -127,7 +130,9 @@ export function VideoAnalyzer() {
     controllerRef.current = controller;
     setPhase({ name: "uploading", progress: 0 });
     try {
-      const { data } = await api.detectVideo(file, sampleFps, {
+      const data = await detectionMutation.mutateAsync({
+        file,
+        sampleFps,
         token,
         signal: controller.signal,
         onProgress: (progress) => setPhase({ name: "uploading", progress }),

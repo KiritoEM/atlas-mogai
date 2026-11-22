@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import { QueryProvider } from "@/lib/query/query-provider";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
@@ -56,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`dark scroll-smooth motion-reduce:scroll-auto ${instrumentSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

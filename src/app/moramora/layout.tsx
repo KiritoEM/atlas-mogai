@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/features/moramora/auth/auth-provider";
+import { AuthProvider } from "@/features/moramora/providers/auth-provider";
 import { MoramoraShell } from "@/features/moramora/components/app-shell";
 
 export const metadata: Metadata = {

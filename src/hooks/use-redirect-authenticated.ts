@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/features/moramora/auth/auth-provider";
+import { useAuth } from "@/features/moramora/providers/auth-provider";
 import { nextPath } from "@/lib/router-utils";
 
 export function useRedirectAuthenticated() {

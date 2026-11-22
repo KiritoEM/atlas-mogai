@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/features/landing/components/brand-mark";
-import { AuthProvider } from "@/features/moramora/auth/auth-provider";
+import { AuthProvider } from "@/features/moramora/providers/auth-provider";
 import { focusRing } from "@/components/ui";
 
 const points = [

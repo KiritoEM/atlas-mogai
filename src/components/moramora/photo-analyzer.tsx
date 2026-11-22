@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ImageUp, RotateCcw, ScanSearch } from "lucide-react";
-import { api, errorMessage, isAbortError } from "@/features/moramora/api/client";
-import { IMAGE_TYPES, LIMITS } from "@/features/moramora/api/config";
+import { errorMessage, isAbortError } from "@/features/moramora/api/client";
+import { useImageDetectionMutation } from "@/hooks/moramora/use-detection-mutations";
+import { IMAGE_TYPES, LIMITS } from "@/constants/api-config-constants";
 import { formatBytes } from "@/features/moramora/api/messages";
-import type { ImageDetection } from "@/features/moramora/api/types";
-import { useAuth, useExpireOn401 } from "@/features/moramora/auth/auth-provider";
+import type { ImageDetection } from "@/types";
+import { useAuth, useExpireOn401 } from "@/features/moramora/providers/auth-provider";
 import { AnnotatedImage, DetectionList, Verdict } from "@/features/moramora/components/detection-result";
 import { FileDropzone } from "@/components/ui/file-dropzone";
 import { Button, Notice, PageHeader, Panel, ProgressBar, Spinner } from "@/components/ui";
@@ -22,6 +23,7 @@ type Phase =
 export function PhotoAnalyzer() {
   const { token } = useAuth();
   const expireOn401 = useExpireOn401();
+  const detectionMutation = useImageDetectionMutation();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
@@ -62,6 +64,7 @@ export function PhotoAnalyzer() {
     setFile(null);
     setPreview(null);
     setPhase({ name: "idle" });
+    detectionMutation.reset();
   }
 
   async function analyze() {
@@ -72,7 +75,8 @@ export function PhotoAnalyzer() {
     controllerRef.current = controller;
     setPhase({ name: "uploading", progress: 0 });
     try {
-      const { data } = await api.detectImage(file, {
+      const data = await detectionMutation.mutateAsync({
+        file,
         token,
         signal: controller.signal,
         onProgress: (progress) => setPhase({ name: "uploading", progress }),

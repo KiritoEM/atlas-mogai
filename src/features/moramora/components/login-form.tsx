@@ -8,9 +8,9 @@ import { useForm } from "react-hook-form";
 import { Form, FormField } from "@/components/ui/form";
 import { Button, Notice, Spinner } from "@/components/ui";
 import { loginSchema, type LoginValues } from "@/lib/form-schemas/auth-schemas";
-import { useRedirectAuthenticated } from "@/lib/hooks/use-redirect-authenticated";
+import { useRedirectAuthenticated } from "@/hooks/use-redirect-authenticated";
 import { ApiError, errorMessage } from "../api/client";
-import { useAuth } from "../auth/auth-provider";
+import { useAuth } from "../providers/auth-provider";
 import { AuthCard, authLinkClass } from "./auth-card";
 import { TextField } from "@/components/ui/text-field";
 

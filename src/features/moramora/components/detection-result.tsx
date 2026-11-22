@@ -9,7 +9,7 @@ import {
   pluralize,
   violationsOf,
 } from "../api/messages";
-import type { Detection } from "../api/types";
+import type { Detection } from "@/types";
 
 export function jpegDataUrl(base64: string) {
   return base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;

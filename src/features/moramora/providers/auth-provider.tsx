@@ -9,9 +9,17 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { ApiError, api } from "../api/client";
-import type { User } from "../api/types";
-import { sessionStore, type Session } from "./session-store";
+import { useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "../api/client";
+import {
+  useLoginMutation,
+  useLogoutMutation,
+  useSignupMutation,
+} from "@/hooks/moramora/use-auth-mutations";
+import { moramoraQueryKeys } from "@/hooks/moramora/query-keys";
+import { useProfileQuery } from "@/hooks/moramora/use-profile-query";
+import type { User } from "@/types";
+import { sessionStore, type Session } from "@/lib/session-store";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
 
@@ -40,51 +48,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStore.getServerSnapshot,
   );
   const token = session?.token ?? null;
+  const queryClient = useQueryClient();
+  const profileQuery = useProfileQuery(token);
+  const { mutateAsync: loginRequest } = useLoginMutation();
+  const { mutateAsync: signupRequest } = useSignupMutation();
+  const { mutateAsync: logoutRequest } = useLogoutMutation();
 
   // Validate a stored token once and refresh the cached user.
   useEffect(() => {
-    if (!token) {
-      return;
-    }
-    const controller = new AbortController();
-    api
-      .profile(token, controller.signal)
-      .then(({ data }) =>
-        sessionStore.updateUser({
-          id: data.id,
-          username: data.username,
-          email: data.email,
-        }),
-      )
-      .catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 401) {
-          sessionStore.set(null);
-        }
+    if (profileQuery.data) {
+      sessionStore.updateUser({
+        id: profileQuery.data.id,
+        username: profileQuery.data.username,
+        email: profileQuery.data.email,
       });
-    return () => controller.abort();
-  }, [token]);
+    }
+    if (profileQuery.error instanceof ApiError && profileQuery.error.status === 401) {
+      sessionStore.set(null);
+    }
+  }, [profileQuery.data, profileQuery.error]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { data } = await api.login({ email, password });
+    const { data } = await loginRequest({ email, password });
     sessionStore.set({ token: data.access, user: data.user });
-  }, []);
+  }, [loginRequest]);
 
   const signup = useCallback<AuthContextValue["signup"]>(
     async (input) => {
-      await api.signup(input);
+      await signupRequest(input);
       await login(input.email, input.password);
     },
-    [login],
+    [login, signupRequest],
   );
 
   const logout = useCallback(async () => {
     const current = sessionStore.getSnapshot();
     sessionStore.set(null);
     if (current) {
-      // Best effort: the token is forgotten locally whatever happens.
-      await api.logout(current.token).catch(() => undefined);
+      queryClient.removeQueries({
+        queryKey: moramoraQueryKeys.profile(current.token),
+      });
+      await logoutRequest(current.token).catch(() => undefined);
     }
-  }, []);
+  }, [logoutRequest, queryClient]);
 
   const expire = useCallback(() => sessionStore.set(null), []);
 
@@ -117,7 +123,6 @@ export function useAuth(): AuthContextValue {
   return context;
 }
 
-/** Calls `expire` when an API error means the token was revoked. */
 export function useExpireOn401() {
   const { expire } = useAuth();
   return useCallback(

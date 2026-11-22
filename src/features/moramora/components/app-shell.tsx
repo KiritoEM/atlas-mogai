@@ -6,7 +6,7 @@ import { useEffect, type ComponentType, type ReactNode } from "react";
 import { Camera, Film, Image as ImageIcon, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandMark } from "@/features/landing/components/brand-mark";
-import { useAuth } from "../auth/auth-provider";
+import { useAuth } from "../providers/auth-provider";
 import {
   DetectionSocketProvider,
   useDetectionSocket,
