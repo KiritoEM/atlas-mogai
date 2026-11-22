@@ -3,8 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Film, Play, RotateCcw, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api, errorMessage, isAbortError } from "../api/client";
-import { LIMITS, VIDEO_TYPES } from "../api/config";
+import { api, errorMessage, isAbortError } from "@/features/moramora/api/client";
+import { LIMITS, VIDEO_TYPES } from "@/features/moramora/api/config";
 import {
   formatBytes,
   formatTimestamp,
@@ -12,12 +12,12 @@ import {
   labelName,
   pluralize,
   violationsOf,
-} from "../api/messages";
-import type { VideoDetection } from "../api/types";
-import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { useSocketMessages } from "../realtime/detection-socket";
-import { AnnotatedImage, Verdict } from "./detection-result";
-import { FileDropzone } from "./file-dropzone";
+} from "@/features/moramora/api/messages";
+import type { VideoDetection } from "@/features/moramora/api/types";
+import { useAuth, useExpireOn401 } from "@/features/moramora/auth/auth-provider";
+import { useSocketMessages } from "@/features/moramora/realtime/detection-socket";
+import { AnnotatedImage, Verdict } from "@/features/moramora/components/detection-result";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   Button,
   Notice,
@@ -26,7 +26,7 @@ import {
   ProgressBar,
   Spinner,
   focusRing,
-} from "./ui";
+} from "@/components/ui";
 
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".webm", ".mkv"];
 

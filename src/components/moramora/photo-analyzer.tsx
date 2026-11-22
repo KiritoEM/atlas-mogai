@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ImageUp, RotateCcw, ScanSearch } from "lucide-react";
-import { api, errorMessage, isAbortError } from "../api/client";
-import { IMAGE_TYPES, LIMITS } from "../api/config";
-import { formatBytes } from "../api/messages";
-import type { ImageDetection } from "../api/types";
-import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { AnnotatedImage, DetectionList, Verdict } from "./detection-result";
-import { FileDropzone } from "./file-dropzone";
-import { Button, Notice, PageHeader, Panel, ProgressBar, Spinner } from "./ui";
+import { api, errorMessage, isAbortError } from "@/features/moramora/api/client";
+import { IMAGE_TYPES, LIMITS } from "@/features/moramora/api/config";
+import { formatBytes } from "@/features/moramora/api/messages";
+import type { ImageDetection } from "@/features/moramora/api/types";
+import { useAuth, useExpireOn401 } from "@/features/moramora/auth/auth-provider";
+import { AnnotatedImage, DetectionList, Verdict } from "@/features/moramora/components/detection-result";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { Button, Notice, PageHeader, Panel, ProgressBar, Spinner } from "@/components/ui";
 
 type Phase =
   | { name: "idle" }
@@ -40,7 +40,9 @@ export function PhotoAnalyzer() {
 
   function choose(next: File) {
     if (!IMAGE_TYPES.includes(next.type)) {
-      setRejection("Format non pris en charge. Choisissez une photo JPEG ou PNG.");
+      setRejection(
+        "Format non pris en charge. Choisissez une photo JPEG ou PNG.",
+      );
       return;
     }
     if (next.size > LIMITS.imageBytes) {
@@ -117,7 +119,10 @@ export function PhotoAnalyzer() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-8">
           <div>
             {result ? (
-              <AnnotatedImage base64={result.image} detections={result.detections} />
+              <AnnotatedImage
+                base64={result.image}
+                detections={result.detections}
+              />
             ) : preview ? (
               // eslint-disable-next-line @next/next/no-img-element -- local preview (object URL)
               <img
@@ -128,7 +133,10 @@ export function PhotoAnalyzer() {
             ) : null}
           </div>
 
-          <Panel className="h-fit p-5 sm:p-6" aria-labelledby="photo-panel-title">
+          <Panel
+            className="h-fit p-5 sm:p-6"
+            aria-labelledby="photo-panel-title"
+          >
             <h2
               id="photo-panel-title"
               ref={resultRef}
@@ -137,7 +145,10 @@ export function PhotoAnalyzer() {
             >
               {result ? "Résultat de l'analyse" : "Photo sélectionnée"}
             </h2>
-            <p className="mt-1 truncate text-[13px] text-fg-3" title={file.name}>
+            <p
+              className="mt-1 truncate text-[13px] text-fg-3"
+              title={file.name}
+            >
               {file.name} · {formatBytes(file.size)}
             </p>
 
@@ -152,7 +163,10 @@ export function PhotoAnalyzer() {
               {phase.name === "uploading" ? (
                 <div className="space-y-2.5">
                   <p className="text-sm text-fg-2">Envoi de la photo…</p>
-                  <ProgressBar value={phase.progress} label="Envoi de la photo" />
+                  <ProgressBar
+                    value={phase.progress}
+                    label="Envoi de la photo"
+                  />
                 </div>
               ) : null}
 

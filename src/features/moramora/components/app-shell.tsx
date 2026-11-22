@@ -12,7 +12,7 @@ import {
   useDetectionSocket,
   type SocketStatus,
 } from "../realtime/detection-socket";
-import { Spinner, focusRing } from "./ui";
+import { Spinner, focusRing } from "@/components/ui";
 
 export const NAV: {
   href: string;

@@ -18,7 +18,7 @@ import {
   type JournalEntry,
 } from "../realtime/detection-socket";
 import { NAV } from "./app-shell";
-import { Button, PageHeader, Panel, focusRing } from "./ui";
+import { Button, PageHeader, Panel, focusRing } from "@/components/ui";
 
 const ACTIONS = [
   {

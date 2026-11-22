@@ -3,7 +3,7 @@
 import { useId, useState, type ComponentProps } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { focusRing } from "./ui";
+import { focusRing } from "@/components/ui";
 
 type TextFieldProps = Omit<ComponentProps<"input">, "id"> & {
   label: string;
@@ -41,9 +41,9 @@ export function TextField({
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
           className={cn(
-            "h-11 w-full rounded-[10px] border bg-ground px-3.5 text-[15px] text-fg transition-colors duration-150 placeholder:text-fg-3 hover:border-divider",
+            "h-12 w-full rounded-[10px] border bg-[#262522]/95 px-3.5 text-[15px] text-fg shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[color,background-color,border-color,box-shadow] duration-200 placeholder:text-fg-3 hover:border-divider",
             focusRing,
-            "focus-visible:border-ember/60",
+            "focus-visible:border-ember/60 focus-visible:bg-[#2b2925] focus-visible:shadow-[0_0_0_3px_rgba(255,90,31,0.1)]",
             invalid ? "border-destructive/70" : "border-line-strong",
             isPassword && "pr-12",
           )}

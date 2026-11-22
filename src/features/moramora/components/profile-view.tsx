@@ -6,7 +6,7 @@ import { LogOut } from "lucide-react";
 import { api, errorMessage, isAbortError } from "../api/client";
 import type { Profile } from "../api/types";
 import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { Button, Notice, PageHeader, Panel, Spinner } from "./ui";
+import { Button, Notice, PageHeader, Panel, Spinner } from "@/components/ui";
 
 const dateFormat = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "long",

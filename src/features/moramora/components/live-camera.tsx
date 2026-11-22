@@ -7,7 +7,7 @@ import { DETECTION_ERRORS, pluralize, violationsOf } from "../api/messages";
 import type { Detection } from "../api/types";
 import { useDetectionSocket, useSocketMessages } from "../realtime/detection-socket";
 import { AnnotatedImage, DetectionList, Verdict } from "./detection-result";
-import { Button, Notice, PageHeader, Panel } from "./ui";
+import { Button, Notice, PageHeader, Panel } from "@/components/ui";
 
 type CameraState = "off" | "starting" | "on" | "denied" | "unsupported" | "error";
 
