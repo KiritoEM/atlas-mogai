@@ -10,7 +10,7 @@ import {
   type Variants,
 } from "motion/react";
 import { cn } from "@/lib/utils";
-import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
+import { usePrefersReducedMotion } from "@/features/landing/components/use-prefers-reduced-motion";
 
 export const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 

@@ -1,14 +1,14 @@
 import { ArrowUp } from "lucide-react";
 import { APPS, NAV_LINKS } from "../content";
 import { BrandMark } from "./brand-mark";
-import { Reveal, Stagger, StaggerItem } from "./motion-primitives";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion-primitives";
 
 const projectLinks = [...NAV_LINKS, { label: "La suite", href: "#suite" }];
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-ground">
-      <div className="mx-auto w-full max-w-[75rem] px-6 py-14 lg:px-8">
+    <footer className="border-t border-divider bg-ground">
+      <div className="mx-auto w-full max-w-[92rem] px-6 py-14 lg:px-8">
         <Stagger
           className="grid gap-10 md:grid-cols-[1.6fr_0.7fr_0.7fr]"
           stagger={0.1}

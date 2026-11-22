@@ -10,8 +10,8 @@ import {
 import { cn } from "@/lib/utils";
 import { APP_BY_ID, CHALLENGES, type ChallengeId } from "../content";
 import { appDot } from "../app-theme";
-import { Reveal, Stagger, StaggerItem } from "./motion-primitives";
-import { SectionHeading } from "./section-heading";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion-primitives";
+import { SignalTick } from "./signature";
 
 const icons: Record<ChallengeId, LucideIcon> = {
   trafic: Car,
@@ -26,14 +26,24 @@ export function ChallengesSection() {
   return (
     <section
       id="defis"
-      className="scroll-mt-20 border-t border-line py-20 sm:py-28"
+      className="scroll-mt-20 border-t border-divider py-20 sm:py-28"
     >
-      <div className="mx-auto w-full max-w-[75rem] px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="Les défis"
-          title="Six problèmes réels, des réponses concrètes"
-          description="Antananarivo n'attend pas une ville parfaite. Elle a besoin d'outils utiles, aujourd'hui, pour les problèmes qu'elle vit chaque jour."
-        />
+      <div className="mx-auto w-full max-w-[92rem] px-6 lg:px-8">
+        <Reveal>
+          <p className="flex items-center gap-2.5 text-[13px] font-medium text-white">
+            <SignalTick />
+            Les défis
+          </p>
+          <h2 className="mt-6 max-w-[48rem] text-[clamp(2.5rem,4.5vw,4.5rem)] leading-[1.06] font-medium tracking-[-0.055em] text-fg">
+            Six problèmes réels,{" "}
+            <span className="text-ember">des réponses concrètes.</span>
+          </h2>
+          <p className="mt-6 max-w-[44rem] text-[clamp(1rem,1.1vw,1.125rem)] leading-[1.6] text-fg-2 text-balance">
+            Antananarivo n&apos;attend pas une ville parfaite. Elle a besoin
+            d&apos;outils utiles, aujourd&apos;hui, pour les problèmes
+            qu&apos;elle vit chaque jour.
+          </p>
+        </Reveal>
 
         <Stagger
           className="mt-12 grid gap-x-16 border-b border-line sm:grid-cols-2"

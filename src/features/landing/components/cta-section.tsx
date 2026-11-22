@@ -1,6 +1,6 @@
 import { APPS, CHALLENGES } from "../content";
 import { ActionLink } from "./action-link";
-import { CountUp, Reveal } from "./motion-primitives";
+import { CountUp, Reveal } from "@/components/motion-primitives";
 
 const spec = [
   { label: "Applications", value: APPS.length },
@@ -11,7 +11,7 @@ const spec = [
 export function CtaSection() {
   return (
     <section id="rejoindre" className="scroll-mt-20 pb-20 sm:pb-24">
-      <div className="mx-auto w-full max-w-[75rem] px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[92rem] px-6 lg:px-8">
         <Reveal
           y={28}
           className="rounded-[16px] border border-line bg-surface p-8 sm:p-12"

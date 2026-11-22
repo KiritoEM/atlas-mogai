@@ -44,7 +44,7 @@ export function AppCard({ app }: AppCardProps) {
         <span className="flex size-9 items-center justify-center rounded-[10px] border border-line bg-raised text-fg-2 transition-colors duration-300 group-hover:border-line-strong group-hover:text-fg">
           <Icon className="size-4 transition-transform duration-300 group-hover:-rotate-6" />
         </span>
-        <span className="font-mono text-[12px] tabular-nums text-fg-3">
+        <span className="font-mono text-[clamp(1.1rem,1.7vw,1.5rem)] leading-none tracking-[0.06em] text-ember tabular-nums">
           {app.index}
         </span>
       </div>
@@ -54,45 +54,22 @@ export function AppCard({ app }: AppCardProps) {
           <span className={cn("size-1.5 rounded-full", appDot[app.id])} />
           {app.category}
         </p>
-        <h3 className="mt-2 text-[24px] leading-tight font-medium text-fg">
+        <h3 className="mt-2 text-[clamp(1.6rem,2vw,2rem)] leading-[1.1] font-medium tracking-[-0.03em] text-fg">
           {app.name}
         </h3>
         <p className="mt-2 text-sm leading-[1.65] text-fg-2">{app.tagline}</p>
       </div>
 
-      <motion.div
-        className="mt-6 rounded-[12px] border border-line bg-ground px-4 pt-5 pb-4 transition-colors duration-300 group-hover:border-line-strong"
-        whileHover={reduced ? undefined : { scale: 1.015 }}
-        transition={{ type: "spring", stiffness: 260, damping: 22 }}
-      >
-        <PhoneFrame>
-          <Screen />
-        </PhoneFrame>
-      </motion.div>
-
-      <p className="mt-6 text-sm leading-[1.65] text-fg-2">{app.description}</p>
-
-      <ul className="mt-5 space-y-2.5">
-        {app.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5 text-[13px]">
-            <span
-              className={cn(
-                "mt-1.5 size-1 shrink-0 rounded-full",
-                appDot[app.id],
-              )}
-            />
-            <span className="leading-[1.6] text-fg-2">{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-auto pt-6">
-        <p className="border-t border-line pt-5 text-[12.5px] leading-relaxed text-fg-3">
-          {app.meaning}
-        </p>
-        <p className="mt-4 text-[12px] text-fg-3">
-          {app.tech.join(" · ")}
-        </p>
+      <div className="mt-auto pt-7">
+        <motion.div
+          className="rounded-[12px] border border-line bg-ground px-4 pt-5 pb-4 transition-colors duration-300 group-hover:border-line-strong"
+          whileHover={reduced ? undefined : { scale: 1.015 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22 }}
+        >
+          <PhoneFrame>
+            <Screen />
+          </PhoneFrame>
+        </motion.div>
       </div>
     </motion.article>
   );

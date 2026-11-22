@@ -1,31 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  useAnimationFrame,
-  useInView,
-  useMotionValue,
-} from "motion/react";
-import { Pause, Play } from "lucide-react";
+import type { CSSProperties } from "react";
+import { Marquee } from "@/components/magicui/marquee";
 import { TICKER } from "../content";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 
-const SPEED = 36;
+const SECOND_ROW = [...TICKER].reverse();
 
-function TickerRow({ muted = false }: { muted?: boolean }) {
+function TickerRow({ items }: { items: readonly string[] }) {
   return (
-    <div
-      aria-hidden={muted || undefined}
-      className="flex shrink-0 items-center"
-    >
-      {TICKER.map((item) => (
+    <div className="flex shrink-0 items-center">
+      {items.map((item) => (
         <span
           key={item}
-          className="flex items-center gap-4 pr-4 text-[13px] whitespace-nowrap text-fg-3"
+          className="flex items-center gap-5 pr-5 text-base font-medium whitespace-nowrap text-white sm:gap-7 sm:pr-7 sm:text-lg"
         >
           {item}
-          <span aria-hidden="true" className="size-1 rounded-full bg-fg-3/40" />
+          <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-ember" />
         </span>
       ))}
     </div>
@@ -34,19 +25,11 @@ function TickerRow({ muted = false }: { muted?: boolean }) {
 
 function StaticTicker() {
   return (
-    <div className="mx-auto w-full max-w-[75rem] px-6 py-4 lg:px-8">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="mx-auto w-full max-w-[92rem] px-6 py-5 lg:px-8">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         {TICKER.map((item, index) => (
-          <span
-            key={item}
-            className="flex items-center gap-4 text-[13px] text-fg-3"
-          >
-            {index > 0 ? (
-              <span
-                aria-hidden="true"
-                className="size-1 rounded-full bg-fg-3/40"
-              />
-            ) : null}
+          <span key={item} className="flex items-center gap-5 text-base font-medium text-white sm:text-lg">
+            {index > 0 && <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-ember" />}
             {item}
           </span>
         ))}
@@ -57,87 +40,39 @@ function StaticTicker() {
 
 export function ChallengeTicker() {
   const reduced = usePrefersReducedMotion();
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(sectionRef);
-  const x = useMotionValue(0);
-  const [loopWidth, setLoopWidth] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    const track = trackRef.current;
-
-    if (!track) {
-      return;
-    }
-
-    const measure = () => setLoopWidth(track.scrollWidth / 2);
-    measure();
-
-    const observer = new ResizeObserver(measure);
-    observer.observe(track);
-
-    return () => observer.disconnect();
-  }, []);
-
-  useAnimationFrame((_, delta) => {
-    if (!inView || reduced || paused || hovered || loopWidth <= 0) {
-      return;
-    }
-
-    const next = x.get() - (delta / 1000) * SPEED;
-    x.set(next <= -loopWidth ? next + loopWidth : next);
-  });
 
   return (
-    <div ref={sectionRef} className="relative border-y border-line">
-      <div className="hidden motion-reduce:block">
+    <div className="relative border-y border-line">
+      {reduced ? (
         <StaticTicker />
-      </div>
+      ) : (
+        <>
+          <span className="sr-only">{TICKER.join(", ")}</span>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-background to-transparent" />
 
-      <div className="motion-reduce:hidden">
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-background to-transparent"
-          aria-hidden="true"
-        />
-
-        <div
-          className="overflow-hidden py-4"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-        >
-          <motion.div
-            ref={trackRef}
-            style={{ x }}
-            className="flex w-max will-change-transform"
+          <Marquee
+            aria-hidden="true"
+            repeat={2}
+            pauseOnHover
+            style={{ "--duration": "42s", "--gap": "0px" } as CSSProperties}
+            className="px-0 py-3 sm:py-4"
           >
-            <TickerRow />
-            <TickerRow muted />
-          </motion.div>
-        </div>
+            <TickerRow items={TICKER} />
+          </Marquee>
 
-        <button
-          type="button"
-          onClick={() => setPaused((value) => !value)}
-          aria-label={
-            paused
-              ? "Reprendre le défilement des défis"
-              : "Mettre le défilement des défis en pause"
-          }
-          className="absolute top-1/2 right-3 z-20 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/80 text-fg-3 backdrop-blur-sm transition-colors duration-150 hover:text-fg focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:outline-none"
-        >
-          {paused ? (
-            <Play className="size-3" aria-hidden="true" />
-          ) : (
-            <Pause className="size-3" aria-hidden="true" />
-          )}
-        </button>
-      </div>
+          <Marquee
+            aria-hidden="true"
+            repeat={2}
+            reverse
+            pauseOnHover
+            style={{ "--duration": "48s", "--gap": "0px" } as CSSProperties}
+            className="px-0 py-3 sm:py-4"
+          >
+            <TickerRow items={SECOND_ROW} />
+          </Marquee>
+        </>
+      )}
     </div>
   );
 }

@@ -45,6 +45,7 @@
   --color-screen: var(--screen);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-divider: var(--divider);
   --color-fg: var(--fg);
   --color-fg-2: var(--fg-2);
   --color-fg-3: var(--fg-3);
@@ -73,6 +74,7 @@
 
   --line: rgba(239, 233, 222, 0.08);
   --line-strong: rgba(239, 233, 222, 0.14);
+  --divider: rgba(239, 233, 222, 0.17);
 
   --fg: #efe9de;
   --fg-2: #aea596;
@@ -120,6 +122,39 @@
 @theme {
   --default-transition-duration: 150ms;
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.magic-marquee,
+.magic-marquee-track {
+  gap: var(--gap, 1rem);
+}
+
+.magic-marquee-track {
+  animation: marquee var(--duration, 40s) infinite linear;
+}
+
+.magic-marquee-track[data-vertical="true"] {
+  animation-name: marquee-vertical;
+}
+
+.magic-marquee-track[data-reverse="true"] {
+  animation-direction: reverse;
+}
+
+.magic-marquee[data-pause-on-hover="true"]:hover > .magic-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
 }
 
 @layer base {

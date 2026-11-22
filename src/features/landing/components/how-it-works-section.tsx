@@ -9,7 +9,7 @@ import {
   Send,
 } from "lucide-react";
 import { STEPS, type Step } from "../content";
-import { Reveal, Stagger, StaggerItem } from "./motion-primitives";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion-primitives";
 import { SectionHeading } from "./section-heading";
 
 const stepIcons: Record<Step["id"], LucideIcon> = {
@@ -30,9 +30,9 @@ export function HowItWorksSection() {
   return (
     <section
       id="methode"
-      className="scroll-mt-20 border-t border-line py-20 sm:py-28"
+      className="scroll-mt-20 border-t border-divider py-20 sm:py-28"
     >
-      <div className="mx-auto w-full max-w-[75rem] px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[92rem] px-6 lg:px-8">
         <SectionHeading
           eyebrow="La méthode"
           title="Du signalement à l'intervention"

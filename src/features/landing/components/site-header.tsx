@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "../content";
 import { ActionLink } from "./action-link";
 import { BrandMark } from "./brand-mark";
-import { EASE } from "./motion-primitives";
+import { EASE } from "@/components/motion-primitives";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 
 export function SiteHeader() {
@@ -52,7 +52,7 @@ export function SiteHeader() {
           : "border-line bg-background",
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[75rem] items-center justify-between gap-8 px-6 lg:px-8">
+      <div className="mx-auto flex h-16 w-full max-w-[92rem] items-center justify-between gap-8 px-6 lg:px-8">
         <a
           href="#accueil"
           className="flex items-center gap-2.5 rounded-[8px] focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background focus-visible:outline-none"

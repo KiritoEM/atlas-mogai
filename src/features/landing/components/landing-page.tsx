@@ -4,7 +4,8 @@ import { ChallengesSection } from "./challenges-section";
 import { CtaSection } from "./cta-section";
 import { Hero } from "./hero";
 import { HowItWorksSection } from "./how-it-works-section";
-import { ScrollProgress } from "./motion-primitives";
+import { LandingIntro } from "./landing-intro";
+import { ScrollProgress } from "@/components/motion-primitives";
 import { RoadmapSection } from "./roadmap-section";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
@@ -13,6 +14,8 @@ import { VisionSection } from "./vision-section";
 export function LandingPage() {
   return (
     <>
+      <LandingIntro />
+      <noscript><style>{".landing-intro{display:none!important}"}</style></noscript>
       <ScrollProgress />
 
       <a
@@ -25,9 +28,14 @@ export function LandingPage() {
       <SiteHeader />
 
       <main id="contenu" className="flex-1">
-        <Hero />
-        <ChallengeTicker />
-        <VisionSection />
+        <div className="relative isolate">
+          <Hero />
+          <div className="relative z-10 bg-background pb-5 sm:pb-6">
+            <ChallengeTicker />
+          </div>
+          <VisionSection />
+        </div>
+
         <AppsSection />
         <ChallengesSection />
         <HowItWorksSection />

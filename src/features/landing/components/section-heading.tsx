@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { Reveal } from "./motion-primitives";
+import { Reveal } from "@/components/motion-primitives";
 import { SignalTick } from "./signature";
 
 type SectionHeadingProps = {
@@ -18,7 +18,7 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <Reveal className={cn("max-w-[42rem]", className)}>
-      <p className="flex items-center gap-2.5 text-[13px] font-medium text-fg-3">
+      <p className="flex items-center gap-2.5 text-[13px] font-medium text-fg-3 text-white">
         <SignalTick />
         {eyebrow}
       </p>

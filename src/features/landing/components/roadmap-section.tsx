@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Droplets, ThumbsUp, Wind } from "lucide-react";
 import { ROADMAP, type RoadmapItem } from "../content";
-import { Stagger, StaggerItem } from "./motion-primitives";
+import { Stagger, StaggerItem } from "@/components/motion-primitives";
 import { SectionHeading } from "./section-heading";
 
 const icons: Record<RoadmapItem["id"], LucideIcon> = {
@@ -14,9 +14,9 @@ export function RoadmapSection() {
   return (
     <section
       id="suite"
-      className="scroll-mt-20 border-t border-line py-20 sm:py-28"
+      className="scroll-mt-20 border-t border-divider py-20 sm:py-28"
     >
-      <div className="mx-auto w-full max-w-[75rem] px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[92rem] px-6 lg:px-8">
         <div className="grid items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
           <SectionHeading
             eyebrow="La suite"

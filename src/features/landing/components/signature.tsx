@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { EASE } from "./motion-primitives";
+import { EASE } from "@/components/motion-primitives";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 
 type SignalTickProps = {

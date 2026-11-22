@@ -1,118 +1,146 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
+import { ArrowUpRight } from "lucide-react";
 import { ActionLink } from "./action-link";
 import { AppOrbit } from "./app-orbit";
-import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
-
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function Hero() {
-  const reduced = usePrefersReducedMotion();
+  const root = useRef<HTMLElement>(null);
 
-  const container: Variants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: reduced ? 0 : 0.1,
-        delayChildren: reduced ? 0 : 0.15,
+  useLayoutEffect(() => {
+    const media = gsap.matchMedia();
+
+    media.add(
+      "(prefers-reduced-motion: no-preference)",
+      () => {
+        const timeline = gsap.timeline({
+          paused: true,
+          defaults: { ease: "power3.out" },
+        });
+        timeline
+          .fromTo(
+            "[data-hero-word]",
+            { yPercent: 112, rotation: 3, transformOrigin: "0% 100%" },
+            {
+              yPercent: 0,
+              rotation: 0,
+              duration: 0.92,
+              stagger: 0.095,
+              ease: "power4.out",
+              clearProps: "all",
+            },
+          )
+          .from(
+            "[data-hero-copy]",
+            { autoAlpha: 0, y: 18, duration: 0.68, clearProps: "all" },
+            0.42,
+          )
+          .from(
+            "[data-hero-actions]",
+            { autoAlpha: 0, y: 12, duration: 0.6, clearProps: "all" },
+            0.57,
+          )
+          .from(
+            "[data-hero-globe]",
+            {
+              autoAlpha: 0,
+              scale: 0.96,
+              y: 18,
+              duration: 1,
+              ease: "power3.out",
+              clearProps: "all",
+            },
+            0.2,
+          );
+
+        const reveal = () => timeline.play();
+
+        window.addEventListener("mogai:intro-complete", reveal, { once: true });
+
+        const fallback = window.setTimeout(reveal, 4300);
+        if (document.documentElement.dataset.mogaiIntroComplete === "true") {
+          reveal();
+        }
+        return () => {
+          window.removeEventListener("mogai:intro-complete", reveal);
+          window.clearTimeout(fallback);
+        };
       },
-    },
-  };
+      root,
+    );
 
-  const item: Variants = {
-    hidden: { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: reduced ? 0 : 0.7, ease: EASE },
-    },
-  };
+    return () => media.revert();
+  }, []);
 
   return (
     <section
+      ref={root}
       id="accueil"
-      className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pb-24"
+      className="relative isolate overflow-hidden border-b border-divider pt-24 pb-14 sm:pt-32 sm:pb-20 lg:pb-24"
     >
-      <div className="mx-auto grid w-full max-w-[75rem] items-center gap-14 px-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={container}
-        >
-          <motion.p
-            variants={item}
-            className="flex items-center gap-2.5 text-[13px] text-fg-3"
-          >
-            <motion.span
-              className="size-1.5 rounded-full bg-fg-3"
-              animate={reduced ? { opacity: 1 } : { opacity: [0.35, 1, 0.35] }}
-              transition={
-                reduced
-                  ? { duration: 0 }
-                  : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
-              }
-            />
-            Prototype
-            <span aria-hidden="true" className="h-3 w-px bg-line-strong" />
-            Antananarivo
-          </motion.p>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_42%_55%_at_72%_42%,rgba(255,90,31,0.075),transparent_75%)]"
+      />
+      <div className="relative mx-auto grid w-full max-w-[92rem] items-center gap-8 px-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:px-8">
+        <div className="relative z-10 py-6 lg:py-10">
+          <h1 className="max-w-[43rem] text-[clamp(2.55rem,5vw,4.8rem)] leading-[1.05] font-medium tracking-[-0.055em] text-fg">
+            <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+              <span className="block whitespace-nowrap">
+                <span data-hero-word className="inline-block">
+                  Antananarivo,
+                </span>
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+              <span className="block whitespace-nowrap">
+                <span data-hero-word className="inline-block">
+                  en
+                </span>{" "}
+                <span data-hero-word className="inline-block">
+                  temps
+                </span>{" "}
+                <span data-hero-word className="inline-block">
+                  réel<span className="text-ember">.</span>
+                </span>
+              </span>
+            </span>
+          </h1>
 
-          <motion.h1
-            variants={item}
-            className="mt-6 text-[2.6rem] leading-[1.04] font-medium tracking-[-0.03em] text-fg sm:text-[3.4rem] lg:text-[3.9rem] xl:text-[4.4rem]"
-          >
-            <span className="block">Antananarivo,</span>
-            <span className="block">en temps réel</span>
-          </motion.h1>
-
-          <motion.p
-            variants={item}
-            className="mt-6 max-w-[34rem] text-[17px] leading-[1.65] text-fg-2"
+          <p
+            data-hero-copy
+            className="mt-7 max-w-[34rem] text-[16px] leading-[1.75] text-fg-2 sm:text-[18px]"
           >
             Moramora, Aiza et Gaspika transforment les signalements des
             habitants en interventions suivies par les services de la ville.
-          </motion.p>
+          </p>
 
-          <motion.div
-            variants={item}
-            className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+          <div
+            data-hero-actions
+            className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            <ActionLink href="#applications">
-              Découvrir les applications
+            <ActionLink href="#applications" className="gap-3">
+              Découvrir les applications{" "}
+              <ArrowUpRight aria-hidden="true" className="size-4" />
             </ActionLink>
             <ActionLink href="#vision" variant="secondary">
               Lire la vision
             </ActionLink>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.div
-          className="px-2 sm:px-0"
-          initial={{ opacity: 0, scale: 0.92, y: 24 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{
-            duration: reduced ? 0 : 0.9,
-            delay: reduced ? 0 : 0.3,
-            ease: EASE,
-          }}
+        <div
+          data-hero-globe
+          className="relative mx-auto w-full max-w-[570px] px-1 sm:px-0"
         >
-          <motion.div
-            animate={reduced ? { y: 0 } : { y: [0, -10, 0] }}
-            transition={
-              reduced
-                ? { duration: 0 }
-                : {
-                    duration: 9,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1.4,
-                  }
-            }
-          >
-            <AppOrbit />
-          </motion.div>
-        </motion.div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-[12%] rounded-full bg-ember/5 blur-[65px]"
+          />
+          <AppOrbit />
+        </div>
       </div>
     </section>
   );
