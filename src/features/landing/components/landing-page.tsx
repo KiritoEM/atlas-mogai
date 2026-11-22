@@ -3,10 +3,8 @@ import { ChallengeTicker } from "./challenge-ticker";
 import { ChallengesSection } from "./challenges-section";
 import { CtaSection } from "./cta-section";
 import { Hero } from "./hero";
-import { HowItWorksSection } from "./how-it-works-section";
 import { LandingIntro } from "./landing-intro";
 import { ScrollProgress } from "@/components/motion-primitives";
-import { RoadmapSection } from "./roadmap-section";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 import { VisionSection } from "./vision-section";
@@ -15,7 +13,9 @@ export function LandingPage() {
   return (
     <>
       <LandingIntro />
-      <noscript><style>{".landing-intro{display:none!important}"}</style></noscript>
+      <noscript>
+        <style>{".landing-intro{display:none!important}"}</style>
+      </noscript>
       <ScrollProgress />
 
       <a
@@ -38,8 +38,6 @@ export function LandingPage() {
 
         <AppsSection />
         <ChallengesSection />
-        <HowItWorksSection />
-        <RoadmapSection />
         <CtaSection />
       </main>
 

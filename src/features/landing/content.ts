@@ -18,16 +18,17 @@ export const APPS: AppContent[] = [
     index: "01",
     name: "Moramora",
     category: "Mobilité & voirie",
-    tagline: "Le réflexe citoyen pour des routes plus sûres",
+    tagline:
+      "La caméra détecte les dangers et prévient automatiquement les usagers proches",
     description:
-      "Un accident, un nid-de-poule, une rue inondée ? Signalez-le en quelques secondes et suivez la prise en charge par les équipes sur le terrain.",
+      "Filmez simplement votre trajet : Moramora reconnaît les dangers, les géolocalise et diffuse une alerte aux personnes à proximité, sans formulaire ni signalement manuel.",
     meaning:
       "« Doucement » en malgache, pour une ville qui avance sans s'arrêter",
     features: [
-      "Signalement photo géolocalisé en 10 secondes",
-      "Priorisation des incidents par l'IA",
-      "Suivi transparent des interventions",
-      "Alertes ciblées pour les usagers proches",
+      "Détection automatique des dangers par la caméra",
+      "Géolocalisation instantanée de l'alerte",
+      "Aucun formulaire ni saisie manuelle",
+      "Diffusion ciblée aux usagers à proximité",
     ],
     tech: ["IA", "Géolocalisation", "Temps réel"],
   },
@@ -52,19 +53,19 @@ export const APPS: AppContent[] = [
     id: "gaspika",
     index: "03",
     name: "Gaspika",
-    category: "Déchets & économie circulaire",
-    tagline: "Rien ne se perd, tout se valorise",
+    category: "Anti-gaspillage alimentaire",
+    tagline: "Planifiez vos courses et sauvez les invendus près de chez vous",
     description:
-      "Signalez les dépôts sauvages, suivez les tournées et trouvez le point de tri le plus proche. Gaspika transforme les déchets en ressources.",
+      "Préparez vos repas de la semaine, générez votre liste de courses et complétez-la avec les invendus disponibles autour de vous. Gaspika aide chaque foyer à acheter juste et moins jeter.",
     meaning:
-      "Du gaspillage à la ressource, avec les habitants comme premiers acteurs",
+      "Du gaspillage à l'assiette, avec les commerces et les habitants comme premiers acteurs",
     features: [
-      "Signalement photo des dépôts sauvages",
-      "Carte et calendrier de collecte",
-      "Points de tri et partenaires recycleurs",
-      "Score citoyen et récompenses locales",
+      "Planning hebdomadaire des repas",
+      "Liste de courses générée et partagée",
+      "Paniers d'invendus adaptés à la liste",
+      "Suivi des repas et kilos de nourriture sauvés",
     ],
-    tech: ["Capteurs IoT", "IA de tri", "Économie circulaire"],
+    tech: ["Géolocalisation", "Prévision IA", "Paiement mobile"],
   },
 ];
 
@@ -74,11 +75,9 @@ export const APP_BY_ID = Object.fromEntries(
 
 export type ChallengeId =
   | "trafic"
-  | "dechets"
-  | "inondations"
-  | "services"
-  | "pollution"
-  | "coordination";
+  | "gaspillage"
+  | "dangers"
+  | "services";
 
 export type Challenge = {
   id: ChallengeId;
@@ -90,24 +89,24 @@ export type Challenge = {
 export const CHALLENGES: Challenge[] = [
   {
     id: "trafic",
-    title: "Embouteillages",
+    title: "Trajets imprévisibles",
     description:
-      "Des itinéraires qui s'adaptent en temps réel et des incidents signalés par ceux qui les vivent.",
+      "Choisir un itinéraire adapté aux conditions de circulation et aux informations partagées en temps réel.",
     apps: ["aiza", "moramora"],
   },
   {
-    id: "dechets",
-    title: "Gestion des déchets",
+    id: "gaspillage",
+    title: "Courses et gaspillage alimentaire",
     description:
-      "Des tournées mieux ciblées, des dépôts sauvages visibles et des déchets qui redeviennent des ressources.",
+      "Planifier les repas, préparer sa liste et intégrer les invendus proches pour acheter juste et moins jeter.",
     apps: ["gaspika"],
   },
   {
-    id: "inondations",
-    title: "Inondations",
+    id: "dangers",
+    title: "Dangers sur la route",
     description:
-      "Des zones à risque cartographiées et des signalements qui remontent avant que l'eau ne monte.",
-    apps: ["moramora", "aiza"],
+      "La caméra détecte automatiquement un danger et prévient les usagers proches, sans saisie manuelle.",
+    apps: ["moramora"],
   },
   {
     id: "services",
@@ -115,20 +114,6 @@ export const CHALLENGES: Challenge[] = [
     description:
       "Un seul réflexe pour trouver un centre de santé, une administration ou le marché le plus proche.",
     apps: ["aiza"],
-  },
-  {
-    id: "pollution",
-    title: "Pollution",
-    description:
-      "Moins de déchets brûlés, moins de trajets inutiles et des données pour cibler les vraies priorités.",
-    apps: ["gaspika", "moramora"],
-  },
-  {
-    id: "coordination",
-    title: "Coordination des infrastructures",
-    description:
-      "Une même donnée urbaine partagée entre les applications et les services de la ville.",
-    apps: ["moramora", "aiza", "gaspika"],
   },
 ];
 
@@ -229,21 +214,17 @@ export const ROADMAP: RoadmapItem[] = [
 ];
 
 export const TICKER = [
-  "Embouteillages",
-  "Gestion des déchets",
-  "Inondations",
+  "Trajets imprévisibles",
+  "Invendus alimentaires",
+  "Dangers sur la route",
   "Services publics",
-  "Pollution",
-  "Coordination des infrastructures",
-  "Mobilité douce",
-  "Données ouvertes",
+  "Mobilité multimodale",
 ];
 
 export const NAV_LINKS = [
   { label: "Vision", href: "#vision" },
   { label: "Applications", href: "#applications" },
   { label: "Défis", href: "#defis" },
-  { label: "Méthode", href: "#methode" },
 ];
 
 export const TECH_STACK = [

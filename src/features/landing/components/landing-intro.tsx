@@ -26,11 +26,15 @@ export function LandingIntro() {
       setVisible(false);
     };
 
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const motionPreference = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
     if (motionPreference.matches) {
       gsap.set(element, { display: "none" });
       queueMicrotask(finish);
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }
 
     const fallback = window.setTimeout(finish, 3400);
@@ -60,24 +64,33 @@ export function LandingIntro() {
           },
           0.04,
         )
-        .to("[data-intro-word]", {
-          autoAlpha: 0,
-          y: -18,
-          duration: 0.3,
-          ease: "power2.in",
-        }, 1.75)
-        .to("[data-intro-bar]", {
-          yPercent: -101,
-          duration: 0.84,
-          stagger: 0.04,
-          ease: "power3.inOut",
-        }, 1.9);
+        .to(
+          "[data-intro-word]",
+          {
+            autoAlpha: 0,
+            y: -18,
+            duration: 0.3,
+            ease: "power2.in",
+          },
+          1.75,
+        )
+        .to(
+          "[data-intro-bar]",
+          {
+            yPercent: -101,
+            duration: 0.84,
+            stagger: 0.04,
+            ease: "power3.inOut",
+          },
+          1.9,
+        );
 
       const stopForReducedMotion = (event: MediaQueryListEvent) => {
         if (event.matches) timeline.progress(1);
       };
       motionPreference.addEventListener("change", stopForReducedMotion);
-      return () => motionPreference.removeEventListener("change", stopForReducedMotion);
+      return () =>
+        motionPreference.removeEventListener("change", stopForReducedMotion);
     }, element);
 
     return () => {
@@ -98,15 +111,15 @@ export function LandingIntro() {
     >
       <div className="absolute inset-0 grid grid-cols-7">
         {BARS.map((bar) => (
-          <div
-            key={bar}
-            data-intro-bar
-            className="h-full bg-[#201e1b]"
-          />
+          <div key={bar} data-intro-bar className="h-full bg-[#201e1b]" />
         ))}
       </div>
 
-      <div data-intro-word aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center text-fg">
+      <div
+        data-intro-word
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center text-fg"
+      >
         <div className="flex overflow-hidden pb-2 text-[clamp(4.5rem,12vw,10rem)] leading-none font-medium tracking-[-0.09em]">
           {BRAND.map((letter, index) => (
             <span
