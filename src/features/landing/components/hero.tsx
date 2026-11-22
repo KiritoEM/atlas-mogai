@@ -1,14 +1,18 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ArrowUpRight } from "lucide-react";
 import { SparklesText } from "@/components/magicui/sparkles-text";
 import { ActionLink } from "./action-link";
-import { AppOrbit } from "./app-orbit";
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
+  const locationFloatRef = useRef<HTMLDivElement>(null);
+  const connectorFloatRef = useRef<HTMLDivElement>(null);
+  const locationRevealRef = useRef<HTMLDivElement>(null);
+  const connectorRevealRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const media = gsap.matchMedia();
@@ -16,6 +20,10 @@ export function Hero() {
     media.add(
       "(prefers-reduced-motion: no-preference)",
       () => {
+        const illustrations = [
+          locationRevealRef.current,
+          connectorRevealRef.current,
+        ];
         const timeline = gsap.timeline({
           paused: true,
           defaults: { ease: "power3.out" },
@@ -35,26 +43,56 @@ export function Hero() {
           )
           .from(
             "[data-hero-copy]",
-            { autoAlpha: 0, y: 18, duration: 0.68, clearProps: "all" },
+            { autoAlpha: 0, y: 18, duration: 0.38, clearProps: "all" },
             0.42,
+          )
+          .fromTo(
+            illustrations,
+            {
+              opacity: 0,
+              y: -40,
+              scale: 0.72,
+              filter: "blur(12px)",
+            },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              filter: "blur(0px)",
+              duration: 1.05,
+              stagger: 0.18,
+              ease: "back.out(1.55)",
+              clearProps: "opacity,transform,filter",
+            },
+            0.28,
           )
           .from(
             "[data-hero-actions]",
-            { autoAlpha: 0, y: 12, duration: 0.6, clearProps: "all" },
+            { autoAlpha: 0, y: 12, duration: 0.3, clearProps: "all" },
             0.57,
-          )
-          .from(
-            "[data-hero-globe]",
-            {
-              autoAlpha: 0,
-              scale: 0.96,
-              y: 18,
-              duration: 1,
-              ease: "power3.out",
-              clearProps: "all",
-            },
-            0.2,
           );
+
+        gsap.to(locationFloatRef.current, {
+          x: 7,
+          y: -25,
+          rotation: 4,
+          scale: 1.035,
+          duration: 1.8,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut",
+        });
+        gsap.to(connectorFloatRef.current, {
+          x: -8,
+          y: 24,
+          rotation: -4,
+          scale: 1.04,
+          duration: 2.4,
+          repeat: -1,
+          yoyo: true,
+          delay: 0.7,
+          ease: "power2.inOut",
+        });
 
         const reveal = () => timeline.play();
 
@@ -83,11 +121,50 @@ export function Hero() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_42%_55%_at_72%_42%,rgba(255,90,31,0.075),transparent_75%)]"
+        className="pointer-events-none absolute bottom-[7%] left-1/2 h-52 w-[min(48rem,90vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,90,31,0.12),rgba(255,90,31,0.035)_42%,transparent_72%)] blur-2xl"
       />
-      <div className="relative mx-auto grid w-full max-w-[92rem] items-center gap-8 px-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:px-8">
-        <div className="relative z-10 py-6 lg:py-10">
-          <h1 className="max-w-[43rem] text-[clamp(2.55rem,5vw,4.8rem)] leading-[1.05] font-medium tracking-[-0.055em] text-fg">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-[radial-gradient(ellipse_70%_80%_at_50%_100%,rgba(255,90,31,0.18),rgba(255,90,31,0.06)_48%,transparent_78%)]"
+      />
+
+      <div
+        ref={locationFloatRef}
+        data-hero-float="location"
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[26%] left-[4%] z-10 hidden w-[clamp(11rem,14vw,13.5rem)] opacity-80 drop-shadow-[0_22px_38px_rgba(255,90,31,0.12)] xl:block 2xl:left-[calc(50%_-_42rem)]"
+      >
+        <div ref={locationRevealRef} data-hero-illustration>
+          <Image
+            src="/illustrations/hero-location.svg"
+            alt=""
+            width={633}
+            height={800}
+            className="h-auto w-full"
+          />
+        </div>
+      </div>
+
+      <div
+        ref={connectorFloatRef}
+        data-hero-float="connector"
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[29%] right-[3.5%] z-10 hidden w-[clamp(14rem,19vw,18rem)] opacity-78 drop-shadow-[0_22px_38px_rgba(255,90,31,0.12)] xl:block 2xl:right-[calc(50%_-_43rem)]"
+      >
+        <div ref={connectorRevealRef} data-hero-illustration>
+          <Image
+            src="/illustrations/hero-connection.svg"
+            alt=""
+            width={868}
+            height={674}
+            className="h-auto w-full"
+          />
+        </div>
+      </div>
+
+      <div className="relative mx-auto flex w-full max-w-[92rem] justify-center px-6 lg:px-8">
+        <div className="relative z-10 flex w-full flex-col items-center py-10 text-center lg:py-16">
+          <h1 className="mx-auto max-w-[58rem] text-[clamp(2.75rem,6.5vw,6.5rem)] leading-[0.98] font-medium tracking-[-0.065em] text-fg">
             <SparklesText
               sparklesCount={10}
               colors={{ first: "#ff5a1f", second: "#efe9de" }}
@@ -108,10 +185,7 @@ export function Hero() {
                   <span data-hero-word className="inline-block">
                     temps
                   </span>{" "}
-                  <span
-                    data-hero-word
-                    className="inline-block text-ember"
-                  >
+                  <span data-hero-word className="inline-block text-ember">
                     réel.
                   </span>
                 </span>
@@ -121,7 +195,7 @@ export function Hero() {
 
           <p
             data-hero-copy
-            className="mt-7 max-w-[34rem] text-[16px] leading-[1.75] text-fg-2 sm:text-[18px]"
+            className="mx-auto mt-7 max-w-[40rem] text-[16px] leading-[1.75] text-fg-2 sm:text-[18px]"
           >
             Moramora, Aiza et Gaspika transforment les signalements des
             habitants en interventions suivies par les services de la ville.
@@ -129,7 +203,7 @@ export function Hero() {
 
           <div
             data-hero-actions
-            className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
+            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <ActionLink href="#applications" className="gap-3">
               Découvrir les applications{" "}
@@ -139,17 +213,6 @@ export function Hero() {
               Lire la vision
             </ActionLink>
           </div>
-        </div>
-
-        <div
-          data-hero-globe
-          className="relative mx-auto w-full max-w-[610px] px-1 sm:px-0"
-        >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-[10%] rounded-full bg-ember/12 blur-[76px]"
-          />
-          <AppOrbit />
         </div>
       </div>
     </section>

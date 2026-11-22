@@ -2,6 +2,7 @@ import { AppsSection } from "./apps-section";
 import { ChallengeTicker } from "./challenge-ticker";
 import { ChallengesSection } from "./challenges-section";
 import { CtaSection } from "./cta-section";
+import { CinematicSection } from "./cinematic-section";
 import { Hero } from "./hero";
 import { LandingIntro } from "./landing-intro";
 import { ScrollProgress } from "@/components/motion-primitives";
@@ -38,6 +39,7 @@ export function LandingPage() {
 
         <AppsSection />
         <ChallengesSection />
+        <CinematicSection />
         <CtaSection />
       </main>
 

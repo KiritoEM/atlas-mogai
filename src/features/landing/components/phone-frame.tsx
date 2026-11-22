@@ -15,7 +15,7 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
         className,
       )}
     >
-      <div className="relative h-[336px] overflow-hidden rounded-[19px] bg-screen">
+      <div className="relative h-[440px] overflow-hidden rounded-[19px] bg-screen">
         <div className="absolute top-2 left-1/2 z-20 h-4 w-14 -translate-x-1/2 rounded-full bg-black" />
         {children}
       </div>
