@@ -1,12 +1,6 @@
-import { APPS, CHALLENGES } from "../content";
 import { ActionLink } from "./action-link";
-import { CountUp, Reveal } from "@/components/motion-primitives";
-
-const spec = [
-  { label: "Applications", value: APPS.length },
-  { label: "Plateforme de données", value: 1 },
-  { label: "Défis traités", value: CHALLENGES.length },
-];
+import { Reveal } from "@/components/motion-primitives";
+import Image from "next/image";
 
 export function CtaSection() {
   return (
@@ -16,7 +10,7 @@ export function CtaSection() {
           y={28}
           className="rounded-[16px] border border-line bg-surface p-8 sm:p-12"
         >
-          <div className="grid gap-12 lg:grid-cols-[1.35fr_1fr] lg:gap-16">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.9fr] lg:gap-16">
             <div>
               <h2 className="text-[2rem] leading-[1.1] font-medium tracking-[-0.015em] text-balance text-fg sm:text-[2.5rem]">
                 Les prototypes sont ouverts
@@ -31,24 +25,22 @@ export function CtaSection() {
                   Découvrir les applications
                 </ActionLink>
               </div>
-              <p className="mt-6 text-[12px] text-fg-3">
-                Moramora est en ligne · Aiza et Gaspika : aperçus conceptuels
-              </p>
             </div>
 
-            <dl className="self-center divide-y divide-line border-y border-line">
-              {spec.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-baseline justify-between gap-6 py-4"
-                >
-                  <dt className="text-[13px] text-fg-3">{row.label}</dt>
-                  <dd className="font-mono text-[18px] text-fg">
-                    <CountUp value={row.value} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <div
+              aria-hidden="true"
+              className="relative mx-auto aspect-[1.75] w-full max-w-[36rem] overflow-hidden rounded-[14px] border border-line bg-ground p-3 sm:p-5"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,90,31,0.1),transparent_68%)]" />
+              <Image
+                src="/illustrations/city-life.svg"
+                alt=""
+                width={1048}
+                height={450}
+                unoptimized
+                className="relative size-full object-contain"
+              />
+            </div>
           </div>
         </Reveal>
       </div>

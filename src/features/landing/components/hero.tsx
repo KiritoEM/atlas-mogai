@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ArrowUpRight } from "lucide-react";
+import { SparklesText } from "@/components/magicui/sparkles-text";
 import { ActionLink } from "./action-link";
 import { AppOrbit } from "./app-orbit";
 
@@ -87,26 +88,35 @@ export function Hero() {
       <div className="relative mx-auto grid w-full max-w-[92rem] items-center gap-8 px-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:px-8">
         <div className="relative z-10 py-6 lg:py-10">
           <h1 className="max-w-[43rem] text-[clamp(2.55rem,5vw,4.8rem)] leading-[1.05] font-medium tracking-[-0.055em] text-fg">
-            <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
-              <span className="block whitespace-nowrap">
-                <span data-hero-word className="inline-block">
-                  Antananarivo,
+            <SparklesText
+              sparklesCount={10}
+              colors={{ first: "#ff5a1f", second: "#efe9de" }}
+              className="block"
+            >
+              <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+                <span className="block whitespace-nowrap">
+                  <span data-hero-word className="inline-block">
+                    Antananarivo,
+                  </span>
                 </span>
               </span>
-            </span>
-            <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
-              <span className="block whitespace-nowrap">
-                <span data-hero-word className="inline-block">
-                  en
-                </span>{" "}
-                <span data-hero-word className="inline-block">
-                  temps
-                </span>{" "}
-                <span data-hero-word className="inline-block">
-                  réel<span className="text-ember">.</span>
+              <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+                <span className="block whitespace-nowrap">
+                  <span data-hero-word className="inline-block">
+                    en
+                  </span>{" "}
+                  <span data-hero-word className="inline-block">
+                    temps
+                  </span>{" "}
+                  <span
+                    data-hero-word
+                    className="inline-block text-ember"
+                  >
+                    réel.
+                  </span>
                 </span>
               </span>
-            </span>
+            </SparklesText>
           </h1>
 
           <p
@@ -133,11 +143,11 @@ export function Hero() {
 
         <div
           data-hero-globe
-          className="relative mx-auto w-full max-w-[570px] px-1 sm:px-0"
+          className="relative mx-auto w-full max-w-[610px] px-1 sm:px-0"
         >
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-[12%] rounded-full bg-ember/5 blur-[65px]"
+            className="pointer-events-none absolute inset-[10%] rounded-full bg-ember/12 blur-[76px]"
           />
           <AppOrbit />
         </div>
