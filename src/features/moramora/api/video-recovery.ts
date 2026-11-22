@@ -3,7 +3,7 @@ import type {
   VideoViolationFrame,
   WsMessage,
   WsVideoCompleted,
-} from "./types";
+} from "@/types";
 
 /**
  * The video endpoint is synchronous: the HTTP request stays open for the whole

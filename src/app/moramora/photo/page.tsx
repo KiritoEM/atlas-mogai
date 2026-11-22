@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PhotoAnalyzer } from "@/features/moramora/components/photo-analyzer";
+import { PhotoAnalyzer } from "@/components/moramora/photo-analyzer";
 
 export const metadata: Metadata = {
   title: "Analyse photo",

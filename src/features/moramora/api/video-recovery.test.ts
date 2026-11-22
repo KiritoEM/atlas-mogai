@@ -5,7 +5,7 @@ import type {
   WsAlert,
   WsMessage,
   WsVideoCompleted,
-} from "./types";
+} from "@/types";
 import {
   emptyVideoTracker,
   recoveredResult,

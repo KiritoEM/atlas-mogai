@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { api, errorMessage, isAbortError } from "../api/client";
-import type { Profile } from "../api/types";
-import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { Button, Notice, PageHeader, Panel, Spinner } from "./ui";
+import { errorMessage } from "../api/client";
+import { useProfileQuery } from "@/hooks/moramora/use-profile-query";
+import { useAuth } from "../providers/auth-provider";
+import { Button, Notice, PageHeader, Panel, Spinner } from "@/components/ui";
 
 const dateFormat = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "long",
@@ -15,29 +15,10 @@ const dateFormat = new Intl.DateTimeFormat("fr-FR", {
 
 export function ProfileView() {
   const { token, user, logout } = useAuth();
-  const expireOn401 = useExpireOn401();
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      return;
-    }
-    const controller = new AbortController();
-    api
-      .profile(token, controller.signal)
-      .then(({ data }) => setProfile(data))
-      .catch((caught: unknown) => {
-        if (isAbortError(caught)) {
-          return;
-        }
-        expireOn401(caught);
-        setError(errorMessage(caught));
-      });
-    return () => controller.abort();
-  }, [token, expireOn401]);
+  const profileQuery = useProfileQuery(token);
+  const profile = profileQuery.data;
 
   async function onLogout() {
     setLeaving(true);
@@ -66,9 +47,9 @@ export function ProfileView() {
     <div className="max-w-[40rem] space-y-8">
       <PageHeader eyebrow="Compte" title="Mon profil" />
 
-      {error ? (
+      {profileQuery.error ? (
         <Notice tone="error" live>
-          {error}
+          {errorMessage(profileQuery.error)}
         </Notice>
       ) : null}
 
@@ -103,7 +84,12 @@ export function ProfileView() {
         <p className="mt-1.5 text-sm leading-[1.6] text-fg-2">
           La déconnexion révoque immédiatement votre jeton d&apos;accès sur le serveur.
         </p>
-        <Button variant="danger" onClick={onLogout} disabled={leaving} className="mt-5">
+        <Button
+          variant="danger"
+          onClick={onLogout}
+          disabled={leaving}
+          className="mt-5"
+        >
           {leaving ? <Spinner /> : <LogOut aria-hidden="true" />}
           Se déconnecter
         </Button>

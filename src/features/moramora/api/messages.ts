@@ -1,10 +1,5 @@
-import type { Detection } from "./types";
+import type { Detection } from "@/types";
 
-/**
- * Classes of the YOLOv8 model (jashwanthpeddisetty0712/violation-detection-yolov8).
- * The model also detects compliant riders, which the API reports like any other
- * detection: only the classes outside COMPLIANT are infractions.
- */
 const LABELS: Record<string, string> = {
   normal: "Conducteur en règle",
   with_helmet: "Avec casque",
@@ -16,7 +11,10 @@ const LABELS: Record<string, string> = {
 const COMPLIANT = new Set(["normal", "with_helmet"]);
 
 function labelKey(label: string) {
-  return label.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 }
 
 export function labelName(label: string): string {

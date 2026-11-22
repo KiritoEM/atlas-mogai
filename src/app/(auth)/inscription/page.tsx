@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SignupForm } from "@/features/moramora/components/auth-forms";
+import { SignupForm } from "@/features/moramora/components/signup-form";
 
 export const metadata: Metadata = {
   title: "Créer un compte",

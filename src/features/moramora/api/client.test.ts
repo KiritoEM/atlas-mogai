@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { detectionService } from "../services/detection-service";
 import {
   ApiError,
   CONNECTION_LOST_MESSAGE,
   NETWORK_MESSAGE,
-  api,
   isAbortError,
 } from "./client";
 
@@ -62,7 +62,7 @@ const video = new File([new Uint8Array(16)], "clip.mp4", { type: "video/mp4" });
 function startVideo(sampleFps = 0.5, extra: { signal?: AbortSignal } = {}) {
   const onProgress = vi.fn();
   const onUploaded = vi.fn();
-  const promise = api.detectVideo(video, sampleFps, {
+  const promise = detectionService.analyzeVideo(video, sampleFps, {
     token: "jwt",
     onProgress,
     onUploaded,
@@ -78,7 +78,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("api.detectVideo", () => {
+describe("detectionService.analyzeVideo", () => {
   it.each([0.5, 1, 2, 5])("sends the video with sample_fps=%s", async (fps) => {
     const { promise, xhr } = startVideo(fps);
     expect(xhr.method).toBe("POST");

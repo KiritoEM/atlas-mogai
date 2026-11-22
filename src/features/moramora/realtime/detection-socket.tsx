@@ -11,10 +11,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { WS_URL } from "../api/config";
+import { WS_URL } from "@/constants/api-config-constants";
 import { describeDetections, violationsOf } from "../api/messages";
-import type { Detection, WsAlert, WsMessage } from "../api/types";
-import { useAuth } from "../auth/auth-provider";
+import type { Detection, WsAlert, WsMessage } from "@/types";
+import { useAuth } from "../providers/auth-provider";
 
 export type SocketStatus =
   | "connecting"

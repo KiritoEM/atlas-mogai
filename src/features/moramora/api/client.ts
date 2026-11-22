@@ -1,12 +1,5 @@
-import { API_URL } from "./config";
+import { API_URL } from "@/constants/api-config-constants";
 import { DETECTION_ERRORS, translateServerMessage } from "./messages";
-import type {
-  ApiEnvelope,
-  ImageDetection,
-  Profile,
-  User,
-  VideoDetection,
-} from "./types";
 
 export type FieldErrors = Record<string, string[]>;
 
@@ -92,14 +85,14 @@ function toApiError(status: number, payload: unknown): ApiError {
   return new ApiError(status, message, undefined, fieldErrors);
 }
 
-type RequestOptions = {
+export type RequestOptions = {
   method?: "GET" | "POST";
   body?: unknown;
   token?: string | null;
   signal?: AbortSignal;
 };
 
-async function request<T>(
+export async function request<T>(
   path: string,
   { method = "GET", body, token, signal }: RequestOptions = {},
 ): Promise<T> {
@@ -133,15 +126,15 @@ async function request<T>(
   return payload as T;
 }
 
-type UploadOptions = {
+export type UploadOptions = {
   token: string;
   onProgress?: (fraction: number) => void;
   onUploaded?: () => void;
   signal?: AbortSignal;
 };
 
-/** Multipart upload through XHR, which (unlike fetch) reports upload progress. */
-function upload<T>(
+/** Multipart upload through XHR, which reports upload progress. */
+export function upload<T>(
   path: string,
   form: FormData,
   { token, onProgress, onUploaded, signal }: UploadOptions,
@@ -193,58 +186,6 @@ function upload<T>(
     xhr.send(form);
   });
 }
-
-export const api = {
-  health: (signal?: AbortSignal) =>
-    request<{ status: string }>("/api/health/", { signal }),
-
-  signup: (input: {
-    username: string;
-    email: string;
-    password: string;
-    password_confirmation: string;
-  }) =>
-    request<ApiEnvelope<User>>("/api/auth/signup/", {
-      method: "POST",
-      body: input,
-    }),
-
-  login: (input: { email: string; password: string }) =>
-    request<ApiEnvelope<{ access: string; user: User }>>("/api/auth/login/", {
-      method: "POST",
-      body: input,
-    }),
-
-  logout: (token: string) =>
-    request<{ success: boolean; message: string }>("/api/auth/logout/", {
-      method: "POST",
-      token,
-    }),
-
-  profile: (token: string, signal?: AbortSignal) =>
-    request<ApiEnvelope<Profile>>("/api/auth/profile/", { token, signal }),
-
-  detectImage: (file: File, options: UploadOptions) => {
-    const form = new FormData();
-    form.append("image", file);
-    return upload<ApiEnvelope<ImageDetection>>(
-      "/api/detection/image/",
-      form,
-      options,
-    );
-  },
-
-  detectVideo: (file: File, sampleFps: number, options: UploadOptions) => {
-    const form = new FormData();
-    form.append("video", file);
-    form.append("sample_fps", String(sampleFps));
-    return upload<ApiEnvelope<VideoDetection>>(
-      "/api/detection/video/",
-      form,
-      options,
-    );
-  },
-};
 
 export function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";

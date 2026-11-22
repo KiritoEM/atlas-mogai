@@ -1,4 +1,4 @@
-import type { User } from "../api/types";
+import type { User } from "@/types";
 
 export type Session = { token: string; user: User };
 
@@ -13,7 +13,9 @@ function readStorage(): Session | null {
       return null;
     }
     const parsed = JSON.parse(raw) as Partial<Session>;
-    return typeof parsed.token === "string" && parsed.user ? (parsed as Session) : null;
+    return typeof parsed.token === "string" && parsed.user
+      ? (parsed as Session)
+      : null;
   } catch {
     return null;
   }
@@ -25,10 +27,6 @@ function emit() {
   }
 }
 
-/**
- * The JWT has no expiry and is revoked server-side on logout, so it is kept in
- * localStorage and shared between tabs through the `storage` event.
- */
 export const sessionStore = {
   subscribe(listener: () => void) {
     listeners.add(listener);

@@ -13,10 +13,6 @@ type FileDropzoneProps = {
   onFile: (file: File) => void;
 };
 
-/**
- * A real file input behind a large label: keyboard, screen reader and touch
- * users get the native picker; mouse users can also drop a file.
- */
 export function FileDropzone({
   accept,
   label,
@@ -86,6 +82,7 @@ export function FileDropzone({
           </span>
         </span>
       </label>
+
       <p id={`${id}-hint`} className="mt-2.5 text-[13px] text-fg-3">
         {hint}
       </p>

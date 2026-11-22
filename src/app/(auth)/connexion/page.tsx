@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LoginForm } from "@/features/moramora/components/auth-forms";
+import { LoginForm } from "@/features/moramora/components/login-form";
 
 export const metadata: Metadata = {
   title: "Connexion",

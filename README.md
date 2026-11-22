@@ -1,10 +1,44 @@
-# MogAI · Moramora
+# MogAI
 
 Front-end de **Moramora** : détection d'infractions routières à moto par l'IA (sans casque, plus de deux personnes, téléphone au guidon) sur photo, vidéo ou caméra en direct. Le dépôt contient aussi la landing **MogAI** qui présente les apps du projet (Moramora, Aiza, Gaspika).
 
 > Next.js 16 · React 19 · Tailwind 4 · TypeScript — branché sur l'API Django [DEVFEST-MORAMORA-API](https://github.com/HairanRins/DEVFEST-MORAMORA-API) (YOLOv8).
 
-## Démarrage rapide
+## Démo en ligne
+
+[Cliquez pour voir le site](https://mogai-atlas.vercel.app/)
+
+## Fonctionnalités
+
+### Application web
+
+- [x] Landing page MogAI
+- [x] Inscription et connexion avec authentification
+- [x] Redirection automatique vers la plateforme Moramora après la connexion et l'inscription
+- [x] Vue d'ensemble : journal des alertes en temps réel et état du service
+- [x] Analyse d'une photo
+- [x] Analyse d'une vidéo : scènes en infraction, frise chronologique, alertes en direct
+- [x] Caméra analysée en continu (envoi de trames JPEG par WebSocket)
+- [x] Profil utilisateur et déconnexion
+
+### Backend
+
+- [x] API REST Django
+- [x] Authentification JWT (inscription, connexion, profil, déconnexion)
+- [x] Détection d'infractions sur image et sur vidéo
+- [x] WebSocket pour les alertes et l'analyse en temps réel
+- [x] Configuration CORS et WebSocket des origines autorisées
+
+## Stack technique
+
+|              |                                                              |
+| ------------ | ------------------------------------------------------------ |
+| **Frontend** | Next.js, TypeScript, Tailwind CSS, TanStack Query, WebSocket |
+| **Backend**  | Django, API REST, WebSocket                                  |
+| **IA**       | YOLO (vision par ordinateur), PyTorch                        |
+| **Infra**    | Docker et Render (backend), Vercel (frontend)                |
+
+## Démarrage de l'application web
 
 ```bash
 npm install
@@ -32,11 +66,11 @@ L'API doit autoriser l'origine du front (`CORS_ALLOWED_ORIGINS` et `WEBSOCKET_AL
 | Route | Rôle | Backend |
 |---|---|---|
 | `/` | Landing MogAI | — |
-| `/connexion`, `/inscription` | Authentification (JWT stocké localement, révoqué à la déconnexion) | `/api/auth/*` |
-| `/moramora` | Vue d'ensemble : journal des alertes en temps réel, état du service | WebSocket, `/api/health/` |
+| `/connexion`, `/inscription` | Authentification (JWT stocké localement), puis redirection vers `/moramora` | `/api/auth/login/`, `/api/auth/signup/` |
+| `/moramora` | Vue d'ensemble : journal des alertes en temps réel, état du service | WebSocket `/ws/detection/`, `/api/health/` |
 | `/moramora/photo` | Analyse d'une photo | `POST /api/detection/image/` |
 | `/moramora/video` | Analyse d'une vidéo : scènes en infraction, frise, alertes en direct | `POST /api/detection/video/` + WebSocket |
-| `/moramora/direct` | Caméra analysée en continu | WebSocket (images JPEG) |
+| `/moramora/direct` | Caméra analysée en continu | WebSocket (trames JPEG binaires) |
 | `/moramora/profil` | Profil et déconnexion | `/api/auth/profile/`, `/api/auth/logout/` |
 
 ## Analyse vidéo : comment ça marche
@@ -51,14 +85,22 @@ L'API doit autoriser l'origine du front (`CORS_ALLOWED_ORIGINS` et `WEBSOCKET_AL
 
 ```
 src/
-├── app/                      Routes (App Router)
+├── app/                    Routes (App Router)
+├── components/
+│   ├── ui/                 Composants d'interface partagés
+│   └── moramora/           Analyseurs photo et vidéo
+├── constants/              Configuration de l'API (URL, limites)
+├── hooks/                  Requêtes et mutations TanStack Query
+├── lib/                    Session, schémas de formulaires, utilitaires
+├── types/                  Types de l'API
 └── features/
-    ├── landing/              Landing MogAI
+    ├── landing/            Landing MogAI
     └── moramora/
-        ├── api/              Client HTTP, types, messages FR, récupération vidéo (+ tests)
-        ├── auth/             Session et contexte d'authentification
-        ├── realtime/         WebSocket de détection (alertes, reconnexion)
-        └── components/       Écrans et UI (photo, vidéo, direct, profil…)
+        ├── api/            Client HTTP, messages FR, récupération vidéo (+ tests)
+        ├── services/       Appels à l'API (auth, détection, santé, profil)
+        ├── providers/      Contexte d'authentification
+        ├── realtime/       WebSocket de détection (alertes, reconnexion)
+        └── components/     Écrans (vue d'ensemble, direct, profil, formulaires…)
 ```
 
 Les tests sont à côté du code (`*.test.ts`).

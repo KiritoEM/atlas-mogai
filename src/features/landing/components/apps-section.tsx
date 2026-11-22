@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Smartphone } from "lucide-react";
 import { APPS } from "../content";
 import { AppCard } from "./app-card";
 import { SignalTick } from "./signature";
@@ -65,6 +66,17 @@ export function AppsSection() {
               clearProps: "all",
             },
             0.42,
+          )
+          .fromTo(
+            "[data-apps-mobile]",
+            { y: 12, autoAlpha: 0 },
+            {
+              y: 0,
+              autoAlpha: 1,
+              duration: 0.55,
+              clearProps: "all",
+            },
+            0.56,
           );
 
         gsap.fromTo(
@@ -126,6 +138,13 @@ export function AppsSection() {
             Chacune répond à un défi précis. Toutes partagent la même donnée
             urbaine, pour que la ville agisse comme un seul système.
           </p>
+          <div
+            data-apps-mobile
+            className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-ember/25 bg-ember/[0.07] px-4 py-2 text-[13px] font-medium text-fg"
+          >
+            <Smartphone aria-hidden="true" className="size-4 text-ember" />
+            Applications mobiles bientôt disponibles
+          </div>
         </div>
 
         <div data-apps-grid className="mt-12 grid gap-6 lg:grid-cols-3">

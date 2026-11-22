@@ -3,8 +3,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Film, Play, RotateCcw, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ApiError, api, errorMessage, isAbortError } from "../api/client";
-import { LIMITS, VIDEO_TYPES } from "../api/config";
+import { ApiError, errorMessage, isAbortError } from "@/features/moramora/api/client";
+import { useVideoDetectionMutation } from "@/hooks/moramora/use-detection-mutations";
+import { LIMITS, VIDEO_TYPES } from "@/constants/api-config-constants";
 import {
   formatBytes,
   formatTimestamp,
@@ -12,19 +13,22 @@ import {
   labelName,
   pluralize,
   violationsOf,
-} from "../api/messages";
-import type { VideoDetection, VideoIncident } from "../api/types";
+} from "@/features/moramora/api/messages";
+import type { VideoDetection, VideoIncident } from "@/types";
 import {
   emptyVideoTracker,
   recoveredResult,
   recoveryTimeoutMs,
   trackVideoMessage,
   type VideoTracker,
-} from "../api/video-recovery";
-import { useAuth, useExpireOn401 } from "../auth/auth-provider";
-import { useDetectionSocket, useSocketMessages } from "../realtime/detection-socket";
-import { AnnotatedImage, Verdict } from "./detection-result";
-import { FileDropzone } from "./file-dropzone";
+} from "@/features/moramora/api/video-recovery";
+import { useAuth, useExpireOn401 } from "@/features/moramora/providers/auth-provider";
+import {
+  useDetectionSocket,
+  useSocketMessages,
+} from "@/features/moramora/realtime/detection-socket";
+import { AnnotatedImage, Verdict } from "@/features/moramora/components/detection-result";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   Button,
   Notice,
@@ -33,7 +37,7 @@ import {
   ProgressBar,
   Spinner,
   focusRing,
-} from "./ui";
+} from "@/components/ui";
 
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".webm", ".mkv"];
 
@@ -70,6 +74,7 @@ function isVideo(file: File) {
 export function VideoAnalyzer() {
   const { token } = useAuth();
   const expireOn401 = useExpireOn401();
+  const detectionMutation = useVideoDetectionMutation();
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
@@ -198,6 +203,7 @@ export function VideoAnalyzer() {
     setSource(null);
     setDuration(null);
     setPhase({ name: "idle" });
+    detectionMutation.reset();
   }
 
   async function analyze() {
@@ -211,7 +217,9 @@ export function VideoAnalyzer() {
     trackingRef.current = true;
     setPhase({ name: "uploading", progress: 0 });
     try {
-      const { data } = await api.detectVideo(file, sampleFps, {
+      const data = await detectionMutation.mutateAsync({
+        file,
+        sampleFps,
         token,
         signal: controller.signal,
         onProgress: (progress) => setPhase({ name: "uploading", progress }),
