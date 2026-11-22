@@ -25,13 +25,14 @@ export function CtaSection() {
                 Moramora, Aiza et Gaspika sont pensés pour Antananarivo.
                 Testez-les, critiquez-les, améliorez-les.
               </p>
-              <div className="mt-8">
-                <ActionLink href="#applications">
+              <div className="mt-8 flex flex-wrap gap-3">
+                <ActionLink href="/moramora">Essayer Moramora</ActionLink>
+                <ActionLink href="#applications" variant="secondary">
                   Découvrir les applications
                 </ActionLink>
               </div>
               <p className="mt-6 text-[12px] text-fg-3">
-                Aperçu conceptuel · les données affichées sont fictives
+                Moramora est en ligne · Aiza et Gaspika : aperçus conceptuels
               </p>
             </div>
 

@@ -81,13 +81,16 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-2 lg:flex">
           <ActionLink
             href="#applications"
             variant="secondary"
             className="h-9 px-4 text-[13px]"
           >
             Découvrir
+          </ActionLink>
+          <ActionLink href="/moramora" className="h-9 px-4 text-[13px]">
+            Ouvrir Moramora
           </ActionLink>
         </div>
 
@@ -161,9 +164,17 @@ export function SiteHeader() {
                 ))}
               </nav>
               <ActionLink
-                href="#applications"
+                href="/moramora"
                 onClick={() => setOpen(false)}
                 className="mt-4 w-full"
+              >
+                Ouvrir Moramora
+              </ActionLink>
+              <ActionLink
+                href="#applications"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+                className="mt-2 w-full"
               >
                 Découvrir les applications
               </ActionLink>

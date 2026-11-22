@@ -187,3 +187,24 @@
     scroll-behavior: auto !important;
   }
 }
+
+.moramora-indeterminate {
+  animation: moramora-indeterminate 1.4s var(--default-transition-timing-function) infinite;
+}
+
+@keyframes moramora-indeterminate {
+  from {
+    left: -33%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moramora-indeterminate {
+    left: 0;
+    width: 100%;
+    opacity: 0.6;
+  }
+}

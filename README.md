@@ -1,3 +1,32 @@
+# MogAI · Moramora
+
+Landing MogAI + plateforme **Moramora** (détection d'infractions routières par l'IA), branchée sur l'API Django `DEVFEST-MORAMORA-API`.
+
+## Démarrer
+
+```bash
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:8000 par défaut
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+L'API doit tourner sur `NEXT_PUBLIC_API_URL` (`python manage.py runserver` dans `moramora_api/`) et autoriser l'origine du front dans `CORS_ALLOWED_ORIGINS` et `WEBSOCKET_ALLOWED_ORIGINS` (localhost:3000 par défaut).
+
+## Pages
+
+| Route | Rôle | Backend |
+|---|---|---|
+| `/connexion`, `/inscription` | Authentification (JWT stocké localement, révoqué à la déconnexion) | `/api/auth/login/`, `/api/auth/signup/` |
+| `/moramora` | Vue d'ensemble : journal des alertes temps réel, état du service | WebSocket `/ws/detection/`, `/api/health/` |
+| `/moramora/photo` | Analyse d'une photo | `POST /api/detection/image/` |
+| `/moramora/video` | Analyse d'une vidéo, frise des infractions, alertes en direct | `POST /api/detection/video/` + WebSocket |
+| `/moramora/direct` | Caméra analysée en continu | WebSocket (trames JPEG binaires) |
+| `/moramora/profil` | Profil et déconnexion | `/api/auth/profile/`, `/api/auth/logout/` |
+
+Code : `src/features/moramora/` (`api/` client et types, `auth/` session, `realtime/` WebSocket, `components/` UI).
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

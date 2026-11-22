@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType } from "react";
-import { Compass, Recycle, Route } from "lucide-react";
+import { ArrowUpRight, Compass, Recycle, Route } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
@@ -58,6 +58,15 @@ export function AppCard({ app }: AppCardProps) {
           {app.name}
         </h3>
         <p className="mt-2 text-sm leading-[1.65] text-fg-2">{app.tagline}</p>
+        {app.id === "moramora" ? (
+          <a
+            href="/moramora"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-[6px] text-sm font-medium text-fg underline decoration-ember/60 underline-offset-4 transition-colors hover:decoration-ember focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-4 focus-visible:ring-offset-surface focus-visible:outline-none"
+          >
+            Ouvrir la plateforme
+            <ArrowUpRight className="size-4" aria-hidden="true" />
+          </a>
+        ) : null}
       </div>
 
       <div className="mt-auto pt-7">
